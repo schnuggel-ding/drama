@@ -1621,6 +1621,72 @@
   .sw-msg-text strong { font-weight: 700; color: var(--ink); }
   .sw-msg-text em { font-style: italic; color: var(--accent2); }
 
+
+  /* ===== COMPACT OPTION CARDS for diagnosis ===== */
+  .sw-opt-grid {
+    display: grid;
+    gap: 0.5rem;
+  }
+  .sw-opt-grid.sw-opt-3 { grid-template-columns: repeat(3, 1fr); }
+  .sw-opt-grid.sw-opt-4 { grid-template-columns: repeat(4, 1fr); }
+  .sw-opt-card {
+    padding: 0.6rem 0.7rem;
+    border-radius: 8px;
+    border: 1px solid var(--rule);
+    background: var(--bg2-solid);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    text-align: center;
+  }
+  .sw-opt-card:hover {
+    border-color: rgba(var(--accent-rgb), 0.5);
+    background: rgba(var(--accent-rgb), 0.05);
+  }
+  .sw-opt-card.selected {
+    background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.12), rgba(var(--accent2-rgb), 0.08));
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.25);
+  }
+  .sw-opt-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.15rem;
+  }
+  .sw-opt-card.selected .sw-opt-title {
+    color: var(--accent);
+  }
+  .sw-opt-desc {
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  @media (max-width: 640px) {
+    .sw-opt-grid.sw-opt-3 { grid-template-columns: repeat(2, 1fr); }
+    .sw-opt-grid.sw-opt-4 { grid-template-columns: repeat(2, 1fr); }
+  }
+  /* File tags in upload area */
+  .sw-file-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.6rem;
+    background: rgba(var(--accent-rgb), 0.08);
+    border: 1px solid rgba(var(--accent-rgb), 0.25);
+    border-radius: 6px;
+    font-size: 0.75rem;
+    color: var(--accent);
+    margin-right: 0.3rem;
+    margin-bottom: 0.3rem;
+  }
+  .sw-file-tag .remove {
+    cursor: pointer;
+    opacity: 0.6;
+    margin-left: 0.2rem;
+  }
+  .sw-file-tag .remove:hover { opacity: 1; }
+
   /* ===== SCREENWRITING CHAT ===== */
   .sw-msg {
     display: flex;
@@ -3018,7 +3084,8 @@
         <ul class="step-list" id="screenwriting-steps">
           <li class="active" data-step="1" onclick="goToStep('screenwriting',1)"><span class="step-num">1</span>课程学习对话</li>
           <li data-step="2" onclick="goToStep('screenwriting',2)"><span class="step-num">2</span>剧本批改诊断</li>
-          <li data-step="3" onclick="goToStep('screenwriting',3)"><span class="step-num">3</span>知识库快速查询</li>
+          <li data-step="3" onclick="goToStep('screenwriting',3)"><span class="step-num">3</span>剧本修改助手</li>
+          <li data-step="4" onclick="goToStep('screenwriting',4)"><span class="step-num">4</span>知识库快速查询</li>
         </ul>
         <div style="margin-top:1.5rem; padding-top:1rem; border-top:1px solid var(--rule);">
           <h4>API 状态</h4>
@@ -3043,10 +3110,10 @@
       <div class="workspace-main">
         <div class="progress-text">
           <span>功能导航</span>
-          <span id="screenwriting-progress-label">1 / 3</span>
+          <span id="screenwriting-progress-label">1 / 4</span>
         </div>
         <div class="progress-bar-wrap">
-          <div class="progress-bar-fill" id="screenwriting-progress" style="width:33.3%"></div>
+          <div class="progress-bar-fill" id="screenwriting-progress" style="width:25%"></div>
         </div>
 
         <!-- ===== Step 1: 课程学习对话 ===== -->
@@ -3091,7 +3158,7 @@
                 <textarea id="sw-chat-input" class="form-control" placeholder="输入你的编剧问题..." style="min-height:44px; max-height:120px; resize:none; flex:1; min-width:200px; margin:0;" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();swSendChat();}"></textarea>
                 <button class="btn btn-primary" onclick="swSendChat()" id="sw-chat-send-btn" style="flex-shrink:0;">&#10148; 发送</button>
                 <button class="btn btn-sm" onclick="document.getElementById('sw-script-file-input').click()" style="flex-shrink:0; background:linear-gradient(135deg, #1a237e, #4a148c); color:#fff; border:none; padding:0.5rem 0.85rem; font-size:0.82rem; border-radius:var(--radius-sm); cursor:pointer; font-family:inherit; font-weight:600; display:flex; align-items:center; gap:0.3rem;" title="上传剧本文件，AI将在对话中进行分析">&#128138; 剧本医生</button>
-                <input type="file" id="sw-script-file-input" accept=".txt,.fountain,.fdx,.docx,.pdf,.doc" style="display:none;" onchange="swHandleScriptUpload(event)">
+                <input type="file" id="sw-script-file-input" accept=".txt,.fountain,.fdx,.docx,.doc,.md,.markdown" style="display:none;" onchange="swHandleScriptUpload(event)">
               </div>
             </div>
           </div>
@@ -3103,94 +3170,165 @@
             <div class="panel-header">
               <div>
                 <h2>&#128270; 剧本批改诊断</h2>
-                <p>上传或粘贴剧本，AI将进行九步全维度诊断</p>
+                <p>上传剧本文档，AI将进行全维度诊断并实时生成批改报告</p>
               </div>
             </div>
 
             <div class="info-block tip">
-              <p>&#128680; 剧本批改将按照九步诊断流程进行：品类识别 → 格式初审 → 结构扫描 → 人物审查 → 冲突节奏审查 → 对白审查 → 红线扫描 → 总评分 → 输出诊断报告。每条问题都会引用理论原理并给出修改建议。</p>
+              <p>&#128680; 支持上传剧本大纲、故事梗概、人物小传、完整剧本等文档（.txt / .docx）。AI将按严重程度（P0致命 → P1重要 → P2建议）逐条列出问题并给出修改建议，不对剧本进行打分。</p>
             </div>
 
+            <!-- 选项区域：学生阶段 + 剧本类型 -->
             <div class="form-group">
               <label>学生阶段 <span class="hint">选择学生的编剧水平，影响批改指导深度</span></label>
-              <div class="option-grid" style="grid-template-columns: repeat(3,1fr);">
-                <div class="option-card selected" onclick="selectOption(this,'sw-student-level')" data-value="beginner">
-                  <div class="oc-title">入门阶段</div>
-                  <div class="oc-desc">给出具体修改示例</div>
+              <div class="sw-opt-grid sw-opt-3">
+                <div class="sw-opt-card selected" onclick="selectOption(this,'sw-student-level')" data-value="beginner">
+                  <div class="sw-opt-title">入门阶段</div>
+                  <div class="sw-opt-desc">给出具体修改示例</div>
                 </div>
-                <div class="option-card" onclick="selectOption(this,'sw-student-level')" data-value="intermediate">
-                  <div class="oc-title">进阶阶段</div>
-                  <div class="oc-desc">指出方向让学生自己改</div>
+                <div class="sw-opt-card" onclick="selectOption(this,'sw-student-level')" data-value="intermediate">
+                  <div class="sw-opt-title">进阶阶段</div>
+                  <div class="sw-opt-desc">指出方向让学生自己改</div>
                 </div>
-                <div class="option-card" onclick="selectOption(this,'sw-student-level')" data-value="advanced">
-                  <div class="oc-title">高阶阶段</div>
-                  <div class="oc-desc">只指出问题找方案</div>
+                <div class="sw-opt-card" onclick="selectOption(this,'sw-student-level')" data-value="advanced">
+                  <div class="sw-opt-title">高阶阶段</div>
+                  <div class="sw-opt-desc">只指出问题找方案</div>
                 </div>
               </div>
             </div>
 
             <div class="form-group">
               <label>剧本类型 <span class="hint">不同类型适用不同的审查标准</span></label>
-              <div class="option-grid" style="grid-template-columns: repeat(4,1fr);">
-                <div class="option-card selected" onclick="selectOption(this,'sw-script-type')" data-value="movie">
-                  <div class="oc-title">院线电影</div>
-                  <div class="oc-desc">Skill2标准</div>
+              <div class="sw-opt-grid sw-opt-4">
+                <div class="sw-opt-card selected" onclick="selectOption(this,'sw-script-type')" data-value="movie">
+                  <div class="sw-opt-title">院线电影</div>
+                  <div class="sw-opt-desc">电影标准</div>
                 </div>
-                <div class="option-card" onclick="selectOption(this,'sw-script-type')" data-value="tvlong">
-                  <div class="oc-title">电视剧</div>
-                  <div class="oc-desc">Skill3长剧标准</div>
+                <div class="sw-opt-card" onclick="selectOption(this,'sw-script-type')" data-value="tvlong">
+                  <div class="sw-opt-title">电视剧</div>
+                  <div class="sw-opt-desc">长剧标准</div>
                 </div>
-                <div class="option-card" onclick="selectOption(this,'sw-script-type')" data-value="webdrama">
-                  <div class="oc-title">网剧/微短剧</div>
-                  <div class="oc-desc">Skill3网剧标准</div>
+                <div class="sw-opt-card" onclick="selectOption(this,'sw-script-type')" data-value="webdrama">
+                  <div class="sw-opt-title">网剧/微短剧</div>
+                  <div class="sw-opt-desc">网剧标准</div>
                 </div>
-                <div class="option-card" onclick="selectOption(this,'sw-script-type')" data-value="shortfilm">
-                  <div class="oc-title">短片/练习</div>
-                  <div class="oc-desc">综合标准</div>
+                <div class="sw-opt-card" onclick="selectOption(this,'sw-script-type')" data-value="shortfilm">
+                  <div class="sw-opt-title">短片/练习</div>
+                  <div class="sw-opt-desc">综合标准</div>
                 </div>
               </div>
             </div>
 
+            <!-- 第二行：文档上传 -->
             <div class="form-group">
-              <label>剧本内容 <span class="hint">粘贴剧本文本或上传文本文件</span></label>
-              <textarea class="form-control" id="sw-script-content" rows="12" placeholder="在此粘贴你的剧本文本...&#10;&#10;支持格式：标准剧本格式（含场景标题、动作描述、对白）或非格式化文本&#10;&#10;建议：上传完整的前30页或至少包含第一幕+第二幕开头的内容，以便进行结构诊断"></textarea>
+              <label>上传剧本文档 <span class="hint">支持 .txt / .docx 格式</span></label>
+              <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                <button class="btn btn-sm btn-secondary" onclick="document.getElementById('sw-diag-file-single').click()" style="flex:1; min-width:140px; justify-content:center;">
+                  &#128196; 上传单个文档
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="document.getElementById('sw-diag-file-multi').click()" style="flex:1; min-width:140px; justify-content:center;">
+                  &#128194; 上传多个文档
+                </button>
+                <button class="btn btn-sm" onclick="swClearDiagFiles()" style="padding:0.4rem 0.7rem; font-size:0.78rem;">
+                  &#128465; 清空
+                </button>
+                <input type="file" id="sw-diag-file-single" accept=".txt,.docx,.doc,.fountain,.fdx,.md,.markdown" style="display:none;" onchange="swHandleDiagFiles(event,false)">
+                <input type="file" id="sw-diag-file-multi" accept=".txt,.docx,.doc,.fountain,.fdx,.md,.markdown" multiple style="display:none;" onchange="swHandleDiagFiles(event,true)">
+              </div>
+              <!-- 已上传文件列表 -->
+              <div id="sw-diag-file-list" style="margin-top:0.5rem;"></div>
             </div>
 
-            <div class="form-group">
-              <label>补充说明 <span class="hint">可选。说明创作背景、目标类型、已知的困惑等</span></label>
-              <textarea class="form-control" id="sw-script-note" rows="3" placeholder="例如：这是一部悬疑类型短片剧本，我想在反转设计上做些创新，但不确定第二幕的节奏是否合适..."></textarea>
-            </div>
-
+            <!-- 第三行：开始诊断按钮 -->
             <div class="btn-row btn-row-end">
-              <button class="btn btn-secondary" onclick="swClearScript()">&#128465; 清空内容</button>
-              <button class="btn btn-primary" onclick="swStartDiagnosis()" id="screenwriting-run-btn">&#128270; 开始诊断批改</button>
+              <button class="btn btn-primary" onclick="swStartDiagnosisV2()" id="screenwriting-run-btn" disabled>&#128270; 开始诊断批改</button>
             </div>
           </div>
 
-          <!-- 诊断结果区域 -->
-          <div id="sw-diagnosis-result" style="display:none;">
-            <div class="panel" style="margin-top:1rem;">
-              <div class="panel-header">
-                <div>
-                  <h2>&#128203; 诊断报告</h2>
-                  <p>九步全维度剧本诊断结果</p>
+          <!-- AI诊断报告（实时预览） -->
+          <div class="panel" style="margin-top:1rem;">
+            <div class="panel-header">
+              <div>
+                <h2>&#128202; AI诊断报告 <span id="sw-diag-status" style="font-size:0.78rem; color:var(--muted); font-weight:400; margin-left:0.5rem;"></span></h2>
+                <p id="sw-diag-subtitle">上传文档并点击"开始诊断批改"后，AI将实时生成诊断报告</p>
+              </div>
+              <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                <button class="btn btn-sm btn-secondary" onclick="swCopyDiagnosis()" id="sw-copy-btn" disabled>&#128203; 复制</button>
+                <button class="btn btn-sm btn-secondary" onclick="swDownloadDiag('md')" id="sw-dl-md-btn" disabled>&#128196; 下载 Markdown</button>
+                <button class="btn btn-sm btn-secondary" onclick="swDownloadDiag('docx')" id="sw-dl-docx-btn" disabled>&#128196; 下载 Word</button>
+              </div>
+            </div>
+            <div id="sw-diag-output" contenteditable="true" style="min-height:300px; max-height:600px; overflow-y:auto; padding:1rem; background:var(--bg3); border-radius:var(--radius-sm); font-size:0.88rem; line-height:1.7; color:var(--ink2); white-space:normal; outline:1px solid transparent; transition:outline 0.2s;" onfocus="this.style.outline='2px solid var(--accent)';" onblur="this.style.outline='1px solid transparent';" oninput="swDiagFullText=this.innerText;">
+              <span style="color:var(--muted);">诊断报告将在此处实时显示...</span>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ===== Step 3: 剧本修改助手（需密码验证） ===== -->
+        <div class="step-content" id="screenwriting-step-3">
+          <div class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>&#9999; 剧本修改助手</h2>
+                <p>基于诊断报告，AI辅助修改剧本</p>
+              </div>
+            </div>
+
+            <!-- 密码验证区 -->
+            <div class="form-group" id="sw-edit-auth-area">
+              <label>身份验证 <span class="hint">请输入密码以解锁此功能</span></label>
+              <div style="display:flex; gap:0.5rem;">
+                <input class="form-control" id="sw-edit-password" type="password" placeholder="请输入密码..." style="flex:1; margin:0;" onkeydown="if(event.key==='Enter'){swCheckEditPassword();}">
+                <button class="btn btn-primary" onclick="swCheckEditPassword()" id="sw-edit-auth-btn">&#128274; 验证</button>
+              </div>
+              <div id="sw-edit-auth-msg" style="margin-top:0.5rem; font-size:0.82rem;"></div>
+            </div>
+
+            <!-- 解锁后的功能区（默认隐藏） -->
+            <div id="sw-edit-workspace" style="display:none;">
+
+              <div class="info-block success">
+                <p>&#9989; 身份验证通过！你可以让AI根据诊断报告修改剧本。修改完成后请仔细审阅，确保修改符合你的创作意图。</p>
+              </div>
+
+              <!-- 诊断报告引用 -->
+              <div class="form-group">
+                <label>诊断报告 <span class="hint">来自第2步的诊断结果，可作为修改依据</span></label>
+                <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+                  <button class="btn btn-sm btn-secondary" onclick="swLoadDiagToEdit()">&#128203; 导入诊断报告</button>
+                  <button class="btn btn-sm btn-secondary" onclick="swLoadScriptToEdit()">&#128196; 导入原始剧本</button>
                 </div>
-                <div>
-                  <button class="btn btn-sm btn-secondary" onclick="swCopyDiagnosis()">&#128203; 复制报告</button>
+                <div id="sw-edit-diag-ref" style="min-height:80px; max-height:200px; overflow-y:auto; padding:0.75rem; background:var(--bg3); border-radius:var(--radius-sm); font-size:0.82rem; line-height:1.6; color:var(--ink2); border:1px solid var(--rule);">
+                  <span style="color:var(--muted);">点击"导入诊断报告"加载上一阶段的诊断结果...</span>
                 </div>
               </div>
-              <div class="prompt-output">
-                <div class="prompt-output-header">
-                  <span>&#128202; 诊断报告</span>
+
+              <!-- 修改指令 -->
+              <div class="form-group">
+                <label>修改指令 <span class="hint">告诉AI你想怎么修改，或指定要解决的诊断问题</span></label>
+                <textarea class="form-control" id="sw-edit-instruction" rows="4" placeholder="例如：&#10;请根据诊断报告中的P0级致命问题，修改第一幕的激励事件设计，让主人公更加主动...&#10;&#10;或者：请针对诊断报告中指出的'对白写在鼻子上'问题，重写第3-5场的对白..."></textarea>
+              </div>
+
+              <!-- 修改后的剧本（可编辑） -->
+              <div class="form-group">
+                <label>修改后的剧本 <span class="hint">AI生成后可在此直接编辑修改</span></label>
+                <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem; flex-wrap:wrap;">
+                  <button class="btn btn-primary" onclick="swStartEdit()" id="sw-edit-run-btn">&#9999; 开始修改剧本</button>
+                  <button class="btn btn-sm btn-secondary" onclick="swCopyEditedScript()">&#128203; 复制</button>
+                  <button class="btn btn-sm btn-secondary" onclick="swDownloadEditedScript('md')">&#128196; 下载MD</button>
+                  <button class="btn btn-sm btn-secondary" onclick="swDownloadEditedScript('docx')">&#128196; 下载Word</button>
                 </div>
-                <pre id="sw-diagnosis-text" style="white-space:pre-wrap; font-family:inherit;"></pre>
+                <div id="sw-edit-output" contenteditable="true" style="min-height:300px; max-height:600px; overflow-y:auto; padding:1rem; background:var(--bg3); border-radius:var(--radius-sm); font-size:0.88rem; line-height:1.8; color:var(--ink2); border:1px solid var(--rule); outline:1px solid transparent; transition:outline 0.2s;" onfocus="this.style.outline='2px solid var(--accent)';" onblur="this.style.outline='1px solid transparent';">
+                  <span style="color:var(--muted);">AI修改后的剧本将在此处显示，你可以直接编辑...</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- ===== Step 3: 知识库快速查询 ===== -->
-        <div class="step-content" id="screenwriting-step-3">
+        <!-- ===== Step 4: 知识库快速查询 ===== -->
+        <div class="step-content" id="screenwriting-step-4">
           <div class="panel">
             <div class="panel-header">
               <div>
@@ -4522,7 +4660,7 @@
               <div class="btn-row" style="padding:0.75rem 1rem;">
                 <button class="btn btn-primary" onclick="openFullWritingView('exam')">&#128193; 查看/编辑试卷</button>
                 <button class="btn btn-secondary" onclick="downloadExamPaper('md')">&#128190; 下载试卷 .md</button>
-                <button class="btn btn-secondary" onclick="downloadExamPaper('doc')">&#128190; 下载试卷 .doc</button>
+                <button class="btn btn-secondary" onclick="downloadExamPaper('docx')">&#128190; 下载试卷 .doc</button>
               </div>
             </div>
             <!-- 答案文件 -->
@@ -4531,7 +4669,7 @@
               <div class="btn-row" style="padding:0.75rem 1rem;">
                 <button class="btn btn-primary" onclick="openExamAnswerView()">&#128193; 查看/编辑答案</button>
                 <button class="btn btn-secondary" onclick="downloadExamAnswer('md')">&#128190; 下载答案 .md</button>
-                <button class="btn btn-secondary" onclick="downloadExamAnswer('doc')">&#128190; 下载答案 .doc</button>
+                <button class="btn btn-secondary" onclick="downloadExamAnswer('docx')">&#128190; 下载答案 .doc</button>
               </div>
             </div>
           </div>
@@ -6290,7 +6428,7 @@
   const state = {
     currentModule: null,
     currentStep: { paper: 1, music: 1, grade: 1, textbook: 1, lesson: 1, exam: 1, polish: 1, correct: 1, book: 1, format: 1, research: 1, fund: 1, competition: 1, screenwriting: 1 },
-    totalSteps: { paper: 7, music: 7, grade: 6, textbook: 7, lesson: 7, exam: 6, polish: 5, correct: 6, book: 7, format: 6, research: 7, fund: 7, competition: 6, screenwriting: 3 },
+    totalSteps: { paper: 7, music: 7, grade: 6, textbook: 7, lesson: 7, exam: 6, polish: 5, correct: 6, book: 7, format: 6, research: 7, fund: 7, competition: 6, screenwriting: 4 },
     selections: {}
   };
 
@@ -7029,7 +7167,7 @@
 
   function selectOption(el, group) {
     const parent = el.parentElement;
-    parent.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+    parent.querySelectorAll('.option-card, .sw-opt-card, .sw-mini-card').forEach(c => c.classList.remove('selected'));
     el.classList.add('selected');
     state.selections[group] = el.dataset.value;
   }
@@ -8825,7 +8963,7 @@
     } else {
       var htmlBody = markdownToHtml(text);
       var docHtml = buildDocHtml(htmlBody, getFilename(fwCurrentMod));
-      downloadTextAsFile('\ufeff' + docHtml, getFilename(fwCurrentMod) + '.doc', 'application/msword;charset=utf-8');
+      downloadTextAsFile('\ufeff' + docHtml, getFilename(fwCurrentMod) + '.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document;charset=utf-8');
     }
     showToast('.' + format + ' 文件已下载', 'success');
   }
@@ -8992,7 +9130,7 @@
     // Get selected file types
     var typeMap = {
       'PDF (.pdf)': ['.pdf'],
-      'Word (.doc/.docx)': ['.doc', '.docx'],
+      'Word (.doc/.docx)': ['.docx'],
       '文本 (.txt)': ['.txt'],
       'Markdown (.md)': ['.md'],
       'Excel (.xls/.xlsx)': ['.xls', '.xlsx'],
@@ -9061,7 +9199,7 @@
 
     var textExtensions = ['.txt', '.md'];
     var pdfExtensions = ['.pdf'];
-    var wordExtensions = ['.docx', '.doc'];
+    var wordExtensions = ['.docx'];
     var extracted = 0;
     var total = refFolderFiles.length;
     var errors = [];
@@ -9355,7 +9493,7 @@
     }
     var typeMap = {
       'PDF (.pdf)': ['.pdf'],
-      'Word (.doc/.docx)': ['.doc', '.docx'],
+      'Word (.doc/.docx)': ['.docx'],
       '文本 (.txt)': ['.txt'],
       'Markdown (.md)': ['.md'],
       'Excel (.xls/.xlsx)': ['.xls', '.xlsx'],
@@ -9409,7 +9547,7 @@
 
     var textExtensions = ['.txt', '.md'];
     var pdfExtensions = ['.pdf'];
-    var wordExtensions = ['.docx', '.doc'];
+    var wordExtensions = ['.docx'];
     var extracted = 0;
     var total = lessonRefFolderFiles.length;
 
@@ -9502,7 +9640,7 @@
     }
     var typeMap = {
       'PDF (.pdf)': ['.pdf'],
-      'Word (.doc/.docx)': ['.doc', '.docx'],
+      'Word (.doc/.docx)': ['.docx'],
       '文本 (.txt)': ['.txt'],
       'Markdown (.md)': ['.md'],
       'Excel (.xls/.xlsx)': ['.xls', '.xlsx'],
@@ -9556,7 +9694,7 @@
 
     var textExtensions = ['.txt', '.md'];
     var pdfExtensions = ['.pdf'];
-    var wordExtensions = ['.docx', '.doc'];
+    var wordExtensions = ['.docx'];
     var extracted = 0;
     var total = examRefFolderFiles.length;
 
@@ -9751,7 +9889,7 @@
   // ===== CORRECT MODULE: STUDENT FOLDER SCAN =====
   async function scanCorrectFolder() {
     if (correctStudentFolderFiles.length === 0) { showToast('请先选择文件夹', 'info'); return; }
-    var typeMap = { 'Word (.doc/.docx)': ['.doc', '.docx'], 'PDF (.pdf)': ['.pdf'], '文本 (.txt)': ['.txt'], 'Markdown (.md)': ['.md'] };
+    var typeMap = { 'Word (.doc/.docx)': ['.docx'], 'PDF (.pdf)': ['.pdf'], '文本 (.txt)': ['.txt'], 'Markdown (.md)': ['.md'] };
     var selectedTypes = [];
     document.querySelectorAll('#correct-filetype-group .checkbox-item.selected').forEach(function(el) {
       var text = el.textContent.trim(); var exts = typeMap[text]; if (exts) selectedTypes = selectedTypes.concat(exts);
@@ -9790,7 +9928,7 @@
     var btn = document.getElementById('correct-extract-btn');
     if (!btn) return; btn.disabled = true;
     statusEl.textContent = '正在提取文件内容...'; statusEl.style.color = 'var(--accent)';
-    var textExtensions = ['.txt', '.md']; var pdfExtensions = ['.pdf']; var wordExtensions = ['.docx', '.doc'];
+    var textExtensions = ['.txt', '.md']; var pdfExtensions = ['.pdf']; var wordExtensions = ['.docx'];
     var extracted = 0; var total = correctStudentFolderFiles.length;
     var pdfjsLib = null; var mammoth = null;
     var needPdf = correctStudentFolderFiles.some(function(f) { return pdfExtensions.some(function(e) { return f.name.toLowerCase().endsWith(e); }); });
@@ -9852,7 +9990,7 @@
   // ===== CORRECT MODULE: REF FOLDER SCAN =====
   async function scanCorrectRefFolder() {
     if (correctRefFolderFiles.length === 0) { showToast('请先选择文件夹', 'info'); return; }
-    var typeMap = { 'PDF (.pdf)': ['.pdf'], 'Word (.doc/.docx)': ['.doc', '.docx'], '文本 (.txt)': ['.txt'], 'Markdown (.md)': ['.md'] };
+    var typeMap = { 'PDF (.pdf)': ['.pdf'], 'Word (.doc/.docx)': ['.docx'], '文本 (.txt)': ['.txt'], 'Markdown (.md)': ['.md'] };
     var selectedTypes = [];
     document.querySelectorAll('#correct-ref-filetype-group .checkbox-item.selected').forEach(function(el) {
       var text = el.textContent.trim(); var exts = typeMap[text]; if (exts) selectedTypes = selectedTypes.concat(exts);
@@ -9891,7 +10029,7 @@
     var btn = document.getElementById('correct-ref-extract-btn');
     if (!btn) return; btn.disabled = true;
     statusEl.textContent = '正在提取文件内容...'; statusEl.style.color = 'var(--accent)';
-    var textExtensions = ['.txt', '.md']; var pdfExtensions = ['.pdf']; var wordExtensions = ['.docx', '.doc'];
+    var textExtensions = ['.txt', '.md']; var pdfExtensions = ['.pdf']; var wordExtensions = ['.docx'];
     var extracted = 0; var total = correctRefFolderFiles.length;
     var pdfjsLib = null; var mammoth = null;
     var needPdf = correctRefFolderFiles.some(function(f) { return pdfExtensions.some(function(e) { return f.name.toLowerCase().endsWith(e); }); });
@@ -9953,7 +10091,7 @@
   // ===== BOOK MODULE: FOLDER SCAN =====
   async function scanBookFolder() {
     if (bookRefFolderFiles.length === 0) { showToast('请先选择文件夹', 'info'); return; }
-    var typeMap = { 'PDF (.pdf)': ['.pdf'], 'Word (.doc/.docx)': ['.doc', '.docx'], '文本 (.txt)': ['.txt'], 'Markdown (.md)': ['.md'] };
+    var typeMap = { 'PDF (.pdf)': ['.pdf'], 'Word (.doc/.docx)': ['.docx'], '文本 (.txt)': ['.txt'], 'Markdown (.md)': ['.md'] };
     var selectedTypes = [];
     document.querySelectorAll('#book-filetype-group .checkbox-item.selected').forEach(function(el) {
       var text = el.textContent.trim(); var exts = typeMap[text]; if (exts) selectedTypes = selectedTypes.concat(exts);
@@ -9992,7 +10130,7 @@
     var btn = document.getElementById('book-extract-btn');
     if (!btn) return; btn.disabled = true;
     statusEl.textContent = '正在提取文件内容...'; statusEl.style.color = 'var(--accent)';
-    var textExtensions = ['.txt', '.md']; var pdfExtensions = ['.pdf']; var wordExtensions = ['.docx', '.doc'];
+    var textExtensions = ['.txt', '.md']; var pdfExtensions = ['.pdf']; var wordExtensions = ['.docx'];
     var extracted = 0; var total = bookRefFolderFiles.length;
     var pdfjsLib = null; var mammoth = null;
     var needPdf = bookRefFolderFiles.some(function(f) { return pdfExtensions.some(function(e) { return f.name.toLowerCase().endsWith(e); }); });
@@ -10063,7 +10201,7 @@
       reader.onload = function(e) { bookTemplateContent = e.target.result; showToast('模板内容已读取', 'success'); };
       reader.onerror = function() { showToast('文件读取失败', 'info'); };
       reader.readAsText(file);
-    } else if (ext.endsWith('.docx') || ext.endsWith('.doc')) {
+    } else if (ext.endsWith('.docx')) {
       var reader = new FileReader();
       reader.onload = function(e) {
         loadMammoth().then(function(mammoth) {
@@ -10108,7 +10246,7 @@
       reader.onload = function(e) { formatTemplateContent = e.target.result; showToast('格式要求内容已读取', 'success'); };
       reader.onerror = function() { showToast('文件读取失败', 'info'); };
       reader.readAsText(file);
-    } else if (ext.endsWith('.docx') || ext.endsWith('.doc')) {
+    } else if (ext.endsWith('.docx')) {
       var reader = new FileReader();
       reader.onload = function(e) {
         loadMammoth().then(function(mammoth) {
@@ -10152,7 +10290,7 @@
       reader.onload = function(e) { formatSourceContent = e.target.result; showToast('文章初稿内容已读取', 'success'); };
       reader.onerror = function() { showToast('文件读取失败', 'info'); };
       reader.readAsText(file);
-    } else if (ext.endsWith('.docx') || ext.endsWith('.doc')) {
+    } else if (ext.endsWith('.docx')) {
       var reader = new FileReader();
       reader.onload = function(e) {
         loadMammoth().then(function(mammoth) {
@@ -10314,7 +10452,7 @@
       };
       reader.onerror = function() { showToast('文件读取失败', 'info'); };
       reader.readAsText(file);
-    } else if (ext.endsWith('.docx') || ext.endsWith('.doc')) {
+    } else if (ext.endsWith('.docx')) {
       var reader = new FileReader();
       reader.onload = function(e) {
         loadMammoth().then(function(mammoth) {
@@ -10395,7 +10533,7 @@
       };
       reader.onerror = function() { showToast('文件读取失败', 'info'); };
       reader.readAsText(file);
-    } else if (ext.endsWith('.docx') || ext.endsWith('.doc')) {
+    } else if (ext.endsWith('.docx')) {
       var reader = new FileReader();
       reader.onload = function(e) {
         loadMammoth().then(function(mammoth) {
@@ -11054,8 +11192,8 @@
     if (!text.trim()) { showToast('写作结果为空', 'info'); return; }
     var htmlBody = markdownToHtml(text);
     var docHtml = buildDocHtml(htmlBody, getFilename(mod));
-    downloadTextAsFile('\ufeff' + docHtml, getFilename(mod) + '.doc', 'application/msword;charset=utf-8');
-    showToast('.doc 文件已下载', 'success');
+    downloadTextAsFile('\ufeff' + docHtml, getFilename(mod) + '.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document;charset=utf-8');
+    showToast('.docx 文件已下载', 'success');
   }
 
   function downloadBoth(mod) {
@@ -11071,11 +11209,11 @@
     if (format === 'md') {
       downloadTextAsFile(text, filename + '.md', 'text/markdown;charset=utf-8');
       showToast('试卷 .md 已下载', 'success');
-    } else if (format === 'doc') {
+    } else if (format === 'docx') {
       var htmlBody = markdownToHtml(text);
       var docHtml = buildDocHtml(htmlBody, filename);
-      downloadTextAsFile('\ufeff' + docHtml, filename + '.doc', 'application/msword;charset=utf-8');
-      showToast('试卷 .doc 已下载', 'success');
+      downloadTextAsFile('\ufeff' + docHtml, filename + '.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document;charset=utf-8');
+      showToast('试卷 .docx 已下载', 'success');
     }
   }
 
@@ -11086,11 +11224,11 @@
     if (format === 'md') {
       downloadTextAsFile(text, filename + '.md', 'text/markdown;charset=utf-8');
       showToast('答案 .md 已下载', 'success');
-    } else if (format === 'doc') {
+    } else if (format === 'docx') {
       var htmlBody = markdownToHtml(text);
       var docHtml = buildDocHtml(htmlBody, filename);
-      downloadTextAsFile('\ufeff' + docHtml, filename + '.doc', 'application/msword;charset=utf-8');
-      showToast('答案 .doc 已下载', 'success');
+      downloadTextAsFile('\ufeff' + docHtml, filename + '.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document;charset=utf-8');
+      showToast('答案 .docx 已下载', 'success');
     }
   }
 
@@ -11409,83 +11547,87 @@
 - 讲解知识点时，先说明理论来源（某本书、某位理论家），再讲核心内容，最后给实践建议
 - 适合教学场景，语言清晰易懂，善用例子说明
 - 回答控制在合理长度，重要概念展开，次要概念简述
-- 用亲切自然的口语化语气，像一位老师在课堂上和学生面对面交流一样`;
+- 用亲切自然的口语化语气，像一位老师在课堂上和学生面对面交流一样
+- 必须使用中文标点符号！书名用《》标注（如《故事》《救猫咪》），引用和强调用中文引号""标注，绝对不要使用英文的直引号""或尖括号<>`;
 
   const SW_DIAGNOSIS_PROMPT = `你是丁老师的数字分身——一位资深影视编剧教授，正在进行学生剧本批改诊断。
 
-## 诊断流程（九步法）
+重要格式要求：
+1. 严禁使用任何Markdown格式！不要使用 **加粗**、#标题、-列表、>引用、|表格 | 等任何markdown标记符号。
+2. 必须使用中文标点符号！书名必须用中文书名号《》标注（如《故事》《救猫咪》《电影剧本写作基础》），引用和强调必须用中文引号“”标注。绝对不要使用英文直引号""或尖括号<>。
+3. 用纯文本段落组织内容，段落之间空一行。
+4. 需要列举时用 ①②③ 或 1. 2. 3. 这样的中文数字编号。
+
+诊断流程（九步法）
 请按以下九步流程对剧本进行全面诊断：
 
-1. **品类识别**：识别剧本类型（电影/电视剧/网剧/短片），确定适用的审查标准
-2. **格式初审**：检查剧本格式是否规范（场景标题、动作行、对白格式、转场标注等）
-3. **结构扫描**：分析整体结构（三幕式/四部分/其他），检查激励事件位置、中点、高潮等关键节拍
-4. **人物审查**：评估主人公主动性、人物弧光完整性、对手力量、配角功能
-5. **冲突与节奏审查**：检查冲突密度、鸿沟设计、节奏张弛、是否有"软肚子"
-6. **对白与文本审查**：检查对白质量（压缩/潜文本/功能）、是否有"写在鼻子上"、解说是否弹药化
-7. **红线全扫描**：检查是否触碰创作红线（价值观问题、逻辑硬伤、抄袭嫌疑等）
-8. **总评分**：按维度打分（叙事质量/人物塑造/冲突力度/对白文本/结构完整/格式规范/综合）
-9. **输出诊断报告**
+1. 品类识别：识别剧本类型（电影/电视剧/网剧/短片），确定适用的审查标准
+2. 格式初审：检查剧本格式是否规范（场景标题、动作行、对白格式、转场标注等）
+3. 结构扫描：分析整体结构（三幕式/四部分/其他），检查激励事件位置、中点、高潮等关键节拍
+4. 人物审查：评估主人公主动性、人物弧光完整性、对手力量、配角功能
+5. 冲突与节奏审查：检查冲突密度、鸿沟设计、节奏张弛、是否有"软肚子"
+6. 对白与文本审查：检查对白质量（压缩/潜文本/功能）、是否有"写在鼻子上"、解说是否弹药化
+7. 红线全扫描：检查是否触碰创作红线（价值观问题、逻辑硬伤、抄袭嫌疑等）
+8. 输出诊断报告（按问题严重程度 P0/P1/P2 分级列出，不进行打分）
 
-## 诊断报告输出格式（严格按此格式输出）
+诊断报告输出格式（严格按此纯文本格式输出，不要使用任何markdown标记）
 
-============================
-        影视编剧剧本诊断报告
-============================
+================================================
+
+              剧本《XXXXX》诊断报告
+
+================================================
 
 【基本信息】
-剧本类型：__
-评估标准：Skill2/Skill3
-学生阶段：入门/进阶/高阶
+片名：__（从剧本内容中识别，如无法识别则标注"未命名"）
+剧本类型：__（必须与用户选择的剧本类型完全一致，不得自行更改）
+作品类型：__（如：悬疑片、剧情片、爱情片、喜剧片、动作片、科幻片、恐怖片、奇幻片、犯罪片、惊悚片、战争片、历史片、传记片、冒险片等，可组合标注如"悬疑/剧情片"）
+评估标准：__
+学生阶段：__（必须与用户在界面上选择的学生阶段完全一致，不得根据剧本内容自行判断或更改。用户选什么就填什么）
 
-【一、总体评分】
-叙事质量：XX/100
-人物塑造：XX/100
-冲突力度：XX/100
-对白文本：XX/100
-结构完整：XX/100
-格式规范：XX/100
------------------------
-综合评分：XX/100
+【一、致命问题】（P0级，必须修改）
+请逐条列出，每条包含：位置、问题描述、理论依据、修改建议
+1. 位置：第X页/第X场
+   问题：...
+   依据：...理论原理
+   建议：...
 
-【二、致命问题】（必须修改）
-序号 | 位置 | 问题描述 | 违反规则 | 修改建议
-1. | 第X页/第X场 | ... | 理论依据 | ...
-2. | ...
+2. 位置：...
+   问题：...
 
-【三、重要问题】（建议修改）
-序号 | 位置 | 问题描述 | 修改方向
-1. | ...
-2. | ...
+【二、重要问题】（P1级，建议修改）
+1. 位置：...
+   问题：...
+   修改方向：...
 
-【四、建议优化】
-序号 | 优化建议
-1. | ...
+【三、建议优化】（P2级，可选改进）
+1. 优化建议：...
 
-【五、红线触碰】（如有）
-红线编号 | 位置 | 问题描述
+【四、红线触碰】（如有）
+1. 位置：...
+   问题：...
 
-【六、格式问题】
+【五、格式问题】
 列出格式不规范之处
 
-【七、核心薄弱项】（最需加强的3个方面）
+【六、核心薄弱项】（最需加强的3个方面）
 1. ...
 2. ...
 3. ...
 
-【八、推荐优先修改顺序】
-致命问题 > 重要问题 > 建议优化
+【七、推荐优先修改顺序】
+P0致命问题 → P1重要问题 → P2建议优化
 
-【九、针对性知识点推送】
-问题 -> 对应理论工具
-- 问题1 -> 相关理论原理
-- 问题2 -> ...
-============================
+【八、针对性知识点推送】
+1. 问题：... → 相关理论原理：...
+2. 问题：... → 相关理论原理：...
+================================================
 
-## 修改指导深度
+修改指导深度
 根据学生阶段选择指导深度：
-- 入门阶段：给出具体修改示例，告诉"可以改成这样"
-- 进阶阶段：指出问题+给出方向，让学生自己改
-- 高阶阶段：只指出问题，让学生自己找方案
+入门阶段：给出具体修改示例，告诉"可以改成这样"
+进阶阶段：指出问题+给出方向，让学生自己改
+高阶阶段：只指出问题，让学生自己找方案
 每个修改建议给2-3种可选方案。`;
 
   const SW_KNOWLEDGE_QUERIES = {
@@ -11506,6 +11648,30 @@
 
 
 
+  // ===== 中文标点自动修正 =====
+  function swFixPunctuation(text) {
+    if (!text) return text;
+    var s = text;
+    // 书名号修正：<书名> 或 <书名> -> 《书名》
+    s = s.replace(/《([^《》<>]+)》/g, '《$1》');  // 已是中文书名号的不动
+    s = s.replace(/<([^<>]{1,30})>/g, function(m, inner) {
+      // 只对疑似书名的尖括号转换（含中文或常见书名关键词）
+      if (/[一-龥]/.test(inner) || /story|save|cat|book|film/i.test(inner)) {
+        return '《' + inner + '》';
+      }
+      return m;
+    });
+    // 英文直引号 -> 中文引号
+    // 处理成对的 "..." -> "..."
+    s = s.replace(/"([^"]{1,200})"/g, '“$1”');
+    // 处理单边的开头引号
+    s = s.replace(/"(?=[^s])/g, '“');
+    s = s.replace(/(?<=[^s])"/g, '”');
+    // 处理成对的 '...' -> ''（单引号）
+    s = s.replace(/'([^']{1,200})'/g, '‘$1’');
+    return s;
+  }
+
   // ===== SMART AUTO-SCROLL =====
   function swIsNearBottom(el, threshold) {
     threshold = threshold || 120;
@@ -11518,8 +11684,49 @@
     }
   }
 
+
+  // 诊断报告渲染：纯文本优先，保留段落结构，去除markdown残留
+  function swRenderDiagnosis(text) {
+    if (!text) return '<span style="color:var(--muted);">诊断报告将在此处实时显示...</span>';
+    text = swFixPunctuation(text);
+    var html = text;
+    // 先去除所有markdown标记
+    html = html.replace(/\*\*([^*]+)\*\*/g, '$1');  // **bold** -> bold
+    html = html.replace(/\*([^*]+)\*/g, '$1');          // *italic* -> italic
+    html = html.replace(/^#{1,6}\s+/gm, '');              // # heading -> plain
+    html = html.replace(/^>\s+/gm, '');                   // > quote -> plain
+    html = html.replace(/^[-*+]\s+/gm, '• ');             // - list -> • item
+    html = html.replace(/`([^`]+)`/g, '$1');             // `code` -> code
+    // Escape HTML
+    html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // 报告主标题（剧本《XXX》诊断报告）居中放大显示
+    html = html.replace(/剧本《([^》]+)》诊断报告/g, function(match, title) {
+      return '<h1 style="text-align:center;font-size:1.5rem;font-weight:800;color:var(--ink);margin:0.5em 0;padding:0.3em 0;letter-spacing:0.05em;">剧本《' + title + '》诊断报告</h1>';
+    });
+    // 【标题】转为带样式的标题块
+    html = html.replace(/【([^】]+)】/g, function(match, title) {
+      return '<div style="font-size:1rem;font-weight:700;color:var(--accent);margin:0.8em 0 0.4em;padding-bottom:0.2em;border-bottom:2px solid rgba(var(--accent-rgb),0.2);">' + title + '</div>';
+    });
+    // 分隔线
+    html = html.replace(/={3,}/g, '<hr style="border:none;border-top:1px solid var(--rule);margin:0.8em 0;">');
+    html = html.replace(/-{3,}/g, '<hr style="border:none;border-top:1px dashed var(--rule);margin:0.5em 0;">');
+    // 箭头
+    html = html.replace(/→/g, '<span style="color:var(--accent2);">→</span>');
+    // 段落：双换行转段落
+    var paragraphs = html.split(/\n\n+/);
+    html = paragraphs.map(function(p) {
+      p = p.trim();
+      if (!p) return '';
+      // 单行换行转 <br>
+      p = p.replace(/\n/g, '<br>');
+      return '<p style="margin-bottom:0.6em;">' + p + '</p>';
+    }).join('');
+    return html;
+  }
+
   function swMdToHtml(text) {
-    if (!text) return '';
+    if (!text) return ''
+    text = swFixPunctuation(text);
     var html = text;
     // Escape HTML first (but preserve newlines for processing)
     html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -11699,47 +11906,156 @@
     return textEl;
   }
 
-  async function swStartDiagnosis() {
-    var scriptContent = document.getElementById('sw-script-content').value.trim();
-    if (!scriptContent) {
-      showToast('请先粘贴或输入剧本文本', 'info');
-      return;
+  // ===== V2 DIAGNOSIS - File Upload + Streaming =====
+  var swDiagFiles = []; // { name, text, type }
+  var swDiagFullText = '';
+
+  function swRenderFileList() {
+    var el = document.getElementById('sw-diag-file-list');
+    if (!swDiagFiles.length) { el.innerHTML = ''; return; }
+    el.innerHTML = swDiagFiles.map(function(f, i) {
+      return '<span class="sw-file-tag">' + f.type + ': ' + f.name +
+        ' <span class="remove" onclick="swRemoveDiagFile(' + i + ')">x</span></span>';
+    }).join('');
+    document.getElementById('screenwriting-run-btn').disabled = false;
+  }
+
+  function swRemoveDiagFile(idx) {
+    swDiagFiles.splice(idx, 1);
+    swRenderFileList();
+    if (!swDiagFiles.length) document.getElementById('screenwriting-run-btn').disabled = true;
+  }
+
+  function swClearDiagFiles() {
+    swDiagFiles = [];
+    swRenderFileList();
+    document.getElementById('screenwriting-run-btn').disabled = true;
+    document.getElementById('sw-diag-file-single').value = '';
+    document.getElementById('sw-diag-file-multi').value = '';
+    document.getElementById('sw-diag-output').innerHTML = '<span style="color:var(--muted);">诊断报告将在此处实时显示...</span>';
+    document.getElementById('sw-diag-status').textContent = '';
+    document.getElementById('sw-diag-subtitle').textContent = '上传文档并点击"开始诊断批改"后，AI将实时生成诊断报告';
+    document.getElementById('sw-copy-btn').disabled = true;
+    document.getElementById('sw-dl-md-btn').disabled = true;
+    document.getElementById('sw-dl-docx-btn').disabled = true;
+  }
+
+  async function swReadFileAsText(file) {
+    var ext = file.name.split('.').pop().toLowerCase();
+    if (ext === 'txt' || ext === 'fountain' || ext === 'fdx' || ext === 'md' || ext === 'markdown') {
+      return await file.text();
+    } else if (ext === 'docx') {
+      var ab = await file.arrayBuffer();
+      var result = await mammoth.extractRawText({ arrayBuffer: ab });
+      return result.value;
+    } else if (ext === 'doc') {
+      // 旧版 .doc 格式：读取二进制并提取中文/英文文本
+      var buf = await file.arrayBuffer();
+      var bytes = new Uint8Array(buf);
+      // 尝试 UTF-16LE 解码（.doc 常见编码）
+      try {
+        var utf16 = new Uint16Array(buf);
+        var text16 = '';
+        for (var i = 0; i < utf16.length; i++) {
+          var ch = utf16[i];
+          if (ch >= 0x20 && ch <= 0x7E) { text16 += String.fromCharCode(ch); }
+          else if (ch >= 0x4E00 && ch <= 0x9FFF) { text16 += String.fromCharCode(ch); }
+          else if (ch >= 0x3000 && ch <= 0x303F) { text16 += String.fromCharCode(ch); }
+          else if (ch >= 0xFF00 && ch <= 0xFFEF) { text16 += String.fromCharCode(ch); }
+          else if (ch === 0x0A || ch === 0x0D) { text16 += '\n'; }
+          else if (ch === 0x09) { text16 += '\t'; }
+        }
+        if (text16.trim().length > 50) return text16.trim();
+      } catch(e) {}
+      // 尝试 GBK/ASCII 解码
+      try {
+        var decoder = new TextDecoder('gbk', { fatal: false });
+        var textGbk = decoder.decode(buf);
+        // 清理乱码字符
+        textGbk = textGbk.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\xFF]/g, '');
+        if (textGbk.trim().length > 50) return textGbk.trim();
+      } catch(e2) {}
+      // 最终 fallback：提取所有可打印字符
+      var textRaw = '';
+      for (var j = 0; j < bytes.length; j++) {
+        var b = bytes[j];
+        if (b >= 0x20 && b <= 0x7E) { textRaw += String.fromCharCode(b); }
+        else if (b === 0x0A || b === 0x0D) { textRaw += '\n'; }
+      }
+      return textRaw.trim().length > 50 ? textRaw.trim() : null;
     }
-    if (scriptContent.length < 200) {
-      showToast('剧本内容过短，请上传更完整的剧本以获得准确诊断', 'info');
+    return null;
+  }
+
+  function swDetectDocType(name) {
+    var n = name.toLowerCase();
+    if (n.includes('大纲') || n.includes('outline')) return '剧本大纲';
+    if (n.includes('梗概') || n.includes(' synopsis') || n.includes('摘要')) return '故事梗概';
+    if (n.includes('人物') || n.includes('角色') || n.includes('character')) return '人物小传';
+    return '完整剧本';
+  }
+
+  async function swHandleDiagFiles(event, multi) {
+    var files = Array.from(event.target.files);
+    if (!files.length) return;
+    for (var i = 0; i < files.length; i++) {
+      try {
+        var text = await swReadFileAsText(files[i]);
+        if (text && text.trim().length > 20) {
+          swDiagFiles.push({ name: files[i].name, text: text.trim(), type: swDetectDocType(files[i].name) });
+        } else {
+          showToast('文件 ' + files[i].name + ' 内容为空或无法读取', 'info');
+        }
+      } catch (e) {
+        showToast('读取 ' + files[i].name + ' 失败', 'info');
+      }
+    }
+    swRenderFileList();
+    event.target.value = '';
+  }
+
+  async function swStartDiagnosisV2() {
+    if (!swDiagFiles.length) {
+      showToast('请先上传至少一个剧本文档', 'info');
       return;
     }
 
     var btn = document.getElementById('screenwriting-run-btn');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> 正在诊断中（约需30-60秒）...';
+    btn.innerHTML = '<span class="spinner"></span> 诊断中...';
 
-    var studentLevel = getSelection('sw-student-level') || 'beginner';
-    var scriptType = getSelection('sw-script-type') || 'movie';
-    var note = document.getElementById('sw-script-note').value.trim();
+    var outputEl = document.getElementById('sw-diag-output');
+    var statusEl = document.getElementById('sw-diag-status');
+    var subtitleEl = document.getElementById('sw-diag-subtitle');
+    outputEl.innerHTML = '';
+    statusEl.textContent = '正在生成...';
+    subtitleEl.textContent = 'AI正在分析上传的文档';
+
+    var studentLevel = getOptionValue('sw-student-level') || 'beginner';
+    var scriptType = getOptionValue('sw-script-type') || 'movie';
 
     var levelMap = { beginner: '入门阶段', intermediate: '进阶阶段', advanced: '高阶阶段' };
-    var typeMap = { movie: '院线电影（Skill2标准）', tvlong: '电视剧（Skill3长剧标准）', webdrama: '网剧/微短剧（Skill3网剧标准）', shortfilm: '短片/练习（综合标准）' };
+    var typeMap = { movie: '院线电影', tvlong: '电视剧', webdrama: '网剧/微短剧', shortfilm: '短片/练习' };
 
-    var userPrompt = '请对学生提交的剧本进行九步全维度诊断批改。\n\n' +
+    // Build file content sections
+    var fileSections = swDiagFiles.map(function(f) {
+      return '【' + f.type + ' - ' + f.name + '】\n' + f.text;
+    }).join('\n\n---\n\n');
+
+    var userPrompt = '请对学生提交的剧本材料进行全维度诊断批改。\n\n' +
       '【剧本类型】' + typeMap[scriptType] + '\n' +
       '【学生阶段】' + levelMap[studentLevel] + '\n' +
-      '【补充说明】' + (note || '无') + '\n\n' +
-      '【剧本文本】\n' + scriptContent;
+      '【上传材料】共' + swDiagFiles.length + '份文档\n\n' +
+      '重要说明：以上【剧本类型】和【学生阶段】是学生在界面上选择的结果，报告中必须严格按照学生选择的阶段填写，不得自行判断或更改学生阶段。如果学生选择的是高阶阶段，报告中就必须写"高阶"，不得根据剧本内容自行推断为入门或进阶。\n\n' +
+      fileSections;
 
     try {
       var cfg = loadApiConfig();
-      if (!cfg.key || cfg.key.length < 10) {
-        showToast('请先配置API密钥', 'info');
-        return;
-      }
+      if (!cfg.key || cfg.key.length < 10) { showToast('请先配置API密钥', 'info'); return; }
 
       var response = await fetch((cfg.baseUrl || cfg.base) + '/chat/completions', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + cfg.key
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.key },
         body: JSON.stringify({
           model: cfg.model,
           messages: [
@@ -11747,29 +12063,549 @@
             { role: 'user', content: userPrompt }
           ],
           temperature: 0.5,
-          max_tokens: 8000
+          max_tokens: 8000,
+          stream: true
         })
       });
 
       if (!response.ok) {
         var err = await response.text();
-        showToast('诊断失败: ' + err.substring(0, 80), 'info');
+        outputEl.innerHTML = '<span style="color:var(--danger);">诊断失败: ' + err.substring(0, 100) + '</span>';
         return;
       }
 
-      var data = await response.json();
-      var result = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
+      var reader = response.body.getReader();
+      var decoder = new TextDecoder();
+      var fullText = '';
+      var buffer = '';
 
-      document.getElementById('sw-diagnosis-result').style.display = 'block';
-      document.getElementById('sw-diagnosis-text').textContent = result || '诊断失败，请重试。';
-      document.getElementById('sw-diagnosis-result').scrollIntoView({ behavior: 'smooth' });
+      while (true) {
+        var result = await reader.read();
+        if (result.done) break;
+        buffer += decoder.decode(result.value, { stream: true });
+        var lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i].trim();
+          if (!line || !line.startsWith('data:')) continue;
+          var data = line.substring(5).trim();
+          if (data === '[DONE]') continue;
+          try {
+            var json = JSON.parse(data);
+            var delta = json.choices && json.choices[0] && json.choices[0].delta;
+            if (delta && delta.content) {
+              fullText += delta.content;
+              outputEl.innerHTML = swRenderDiagnosis(fullText);
+              if (swIsNearBottom(outputEl, 120)) { outputEl.scrollTop = outputEl.scrollHeight; }
+            }
+          } catch (e) {}
+        }
+      }
+
+      swDiagFullText = fullText;
+      statusEl.textContent = '诊断完成';
+      subtitleEl.textContent = '共分析 ' + swDiagFiles.length + ' 份文档';
+      document.getElementById('sw-copy-btn').disabled = false;
+      document.getElementById('sw-dl-md-btn').disabled = false;
+      document.getElementById('sw-dl-docx-btn').disabled = false;
       showToast('剧本诊断完成！', 'success');
     } catch (e) {
-      showToast('诊断出错，请检查网络和API配置', 'info');
+      outputEl.innerHTML += '<span style="color:var(--danger);">\n诊断出错，请检查网络和API配置</span>';
     } finally {
       btn.disabled = false;
       btn.innerHTML = '&#128270; 开始诊断批改';
     }
+  }
+
+  function swCopyDiagnosis() {
+    if (!swDiagFullText) { showToast('暂无诊断内容', 'info'); return; }
+    navigator.clipboard.writeText(swDiagFullText).then(function() { showToast('已复制到剪贴板', 'success'); });
+  }
+
+
+  // ===== SCRIPT EDIT ASSISTANT (requires password) =====
+  var swEditUnlocked = false;
+  var swEditDiagText = '';
+  var swEditScriptText = '';
+
+  function swCheckEditPassword() {
+    var pwd = document.getElementById('sw-edit-password').value.trim();
+    var msgEl = document.getElementById('sw-edit-auth-msg');
+    if (pwd === 'wouidklcui') {
+      swEditUnlocked = true;
+      document.getElementById('sw-edit-auth-area').style.display = 'none';
+      document.getElementById('sw-edit-workspace').style.display = 'block';
+      msgEl.innerHTML = '<span style="color:var(--success);">&#9989; 验证通过！</span>';
+      showToast('身份验证成功，剧本修改功能已解锁', 'success');
+    } else {
+      msgEl.innerHTML = '<span style="color:var(--danger);">&#10060; 密码错误，此功能仅限丁老师使用</span>';
+      // 清空密码框，增加安全性
+      document.getElementById('sw-edit-password').value = '';
+    }
+  }
+
+  function swLoadDiagToEdit() {
+    var refEl = document.getElementById('sw-edit-diag-ref');
+    // 从诊断输出区获取最新内容（优先用 innerText 因为可编辑）
+    var diagText = document.getElementById('sw-diag-output') ? document.getElementById('sw-diag-output').innerText.trim() : '';
+    if (!diagText || diagText === '诊断报告将在此处实时显示...') {
+      // fallback to swDiagFullText
+      diagText = swDiagFullText;
+    }
+    if (!diagText) {
+      showToast('请先在第2步完成剧本诊断', 'info');
+      return;
+    }
+    swEditDiagText = diagText;
+    refEl.innerHTML = swRenderDiagnosis(diagText);
+    showToast('诊断报告已导入', 'success');
+  }
+
+  function swLoadScriptToEdit() {
+    var refEl = document.getElementById('sw-edit-diag-ref');
+    // 从上传的文件中获取剧本内容
+    if (swDiagFiles && swDiagFiles.length > 0) {
+      var scriptText = swDiagFiles.map(function(f) { return '【' + f.type + ' - ' + f.name + '】\n' + f.text; }).join('\n\n---\n\n');
+      swEditScriptText = scriptText;
+      refEl.innerHTML = '<div style="color:var(--accent);font-weight:600;margin-bottom:0.5rem;">原始剧本已加载（' + swDiagFiles.length + '份文档）</div><pre style="white-space:pre-wrap;font-size:0.78rem;max-height:300px;overflow-y:auto;">' + scriptText.substring(0, 3000) + (scriptText.length > 3000 ? '\n...（共' + scriptText.length + '字）' : '') + '</pre>';
+      showToast('原始剧本已导入', 'success');
+    } else {
+      showToast('请先在第2步上传剧本文件', 'info');
+    }
+  }
+
+  async function swStartEdit() {
+    var instruction = document.getElementById('sw-edit-instruction').value.trim();
+    if (!instruction) {
+      showToast('请输入修改指令', 'info');
+      return;
+    }
+
+    var diagRef = swEditDiagText || '';
+    var scriptRef = swEditScriptText || (swDiagFiles.length > 0 ? swDiagFiles.map(function(f) { return f.text; }).join('\n\n') : '');
+
+    if (!scriptRef) {
+      showToast('请先导入原始剧本（点击"导入原始剧本"按钮）', 'info');
+      return;
+    }
+
+    var btn = document.getElementById('sw-edit-run-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> 修改中...';
+
+    var outputEl = document.getElementById('sw-edit-output');
+    outputEl.innerHTML = '<span style="color:var(--muted);">AI正在修改剧本...</span>';
+
+    var scriptType = getOptionValue('sw-script-type') || 'movie';
+
+    var formatTemplate = '';
+    if (scriptType === 'tvlong' || scriptType === 'webdrama') {
+      // 短剧/网剧格式
+      formatTemplate = '\n\n【剧本输出格式要求（短剧/网剧/微短剧格式）】\n' +
+        '必须严格按照以下格式输出剧本，不得使用任何其他格式：\n\n' +
+        '格式规范：\n' +
+        '1. 集数标题行：第X集（独立一行，居中）\n' +
+        '2. 场次标题行：X-Y 场景：地点 时间 内/外\n' +
+        '   说明：X为集数，Y为场号，如 48-1\n' +
+        '   示例：48-1 场景：深海资本顶层 黄昏 内\n' +
+        '3. 人物行：人物：角色名1、角色名2（紧跟场次标题之后）\n' +
+        '4. 动作描述行：以 △ 符号开头，描述场景动作、环境、人物动作\n' +
+        '   示例：△ 落地窗外的晚霞将江面染成鎏金，林微捧着年度合作清单...\n' +
+        '5. 对白行格式：角色名：（动作/神态）台词内容\n' +
+        '   示例：林微：沈律！你看，我们拿下了意大利面料的独家配额！\n' +
+        '   示例：沈律：（轻声说）关于你的每一件事，我都记得。\n' +
+        '6. 场景之间空一行分隔\n' +
+        '7. 不要使用场景编号外的任何markdown标记\n\n' +
+        '完整示例：\n\n' +
+        '第48集\n\n' +
+        '48-1 场景：深海资本顶层 黄昏 内\n' +
+        '人物：林微、沈律\n' +
+        '△ 落地窗外的晚霞将江面染成鎏金，林微捧着年度合作清单，指尖划过"全球顶级面料供应商独家合作"的字样，嘴角的笑意藏不住地漾开。\n' +
+        '林微：沈律！你看，我们不仅拿下了意大利面料的独家配额，巴黎那边新的走秀邀约也来了！\n' +
+        '△ 沈律放下手里的婚礼场地手册，起身走到她身边，自然地揽住她的腰\n' +
+        '沈律：你本来就是深海里最亮的珍珠，光芒迟早要照到全世界。\n' +
+        '林微：（歪头靠在他肩上）还说呢，当年要不是你悄悄帮我牵线苏师傅，我哪能这么快站稳脚跟？\n\n' +
+        '48-2 场景：江景私宅主卧 夜 内\n' +
+        '人物：林微、沈律\n' +
+        '△ 暖橘色的床头灯洒在柔软的真丝床品上，沈律靠在床头，手里还握着婚礼流程表。\n' +
+        '林微：（走到床边）别忙了，今天只想跟你好好待着。\n\n';
+    } else {
+      // 电影/短片格式
+      formatTemplate = '\n\n【剧本输出格式要求（电影/短片格式）】\n' +
+        '必须严格按照以下格式输出剧本，不得使用任何其他格式：\n\n' +
+        '格式规范：\n' +
+        '1. 剧本标题行：短片电影剧本《片名》或 电影剧本《片名》（独立一行，居中）\n' +
+        '2. 正文标记：-正文-（独立一行）\n' +
+        '3. 场次标题行：第X场：地点 时间 内/外\n' +
+        '   示例：第一场：老旧公寓门口 日 内\n' +
+        '   示例：第二场：厨房门口 日 内\n' +
+        '4. 人物行：人物：角色名1、角色名2（紧跟场次标题之后）\n' +
+        '5. 动作描述行：以 △ 符号开头，描述场景动作、环境、人物动作\n' +
+        '   示例：△ 门铃响了。沈律去开门，顾航穿着一身不合身的高定西装站在门口。\n' +
+        '6. 对白行格式：角色名：（动作/神态）台词内容\n' +
+        '   示例：顾航：（声音压得很低，几乎在哀求）沈助理……救我……\n' +
+        '   示例：沈律：（面无表情）顾总，您来了。请坐。\n' +
+        '7. 画外音格式：角色名（o.s.）：台词内容\n' +
+        '   示例：林微（o.s.）：心里那个人……沈律喜欢的人？\n' +
+        '8. 电话对白格式：角色名（电话）：台词内容\n' +
+        '9. 场景之间空一行分隔\n' +
+        '10. 不要使用场景编号外的任何markdown标记\n\n' +
+        '完整示例：\n\n' +
+        '短片电影剧本《等风来》\n\n' +
+        '-正文-\n\n' +
+        '第一场：老旧公寓门口 日 内\n' +
+        '人物：林微、沈律、顾航\n' +
+        '△ 门铃响了。沈律去开门，顾航穿着一身不合身的高定西装站在门口，领带歪歪扭扭。\n' +
+        '顾航：（声音压得很低，几乎在哀求）沈助理……救我……\n' +
+        '沈律：（面无表情）顾总，您来了。请坐。\n' +
+        '林微：（从房间出来，惊讶）顾总？您怎么来了？\n' +
+        '顾航：（挺直腰板，试图维持霸总人设）咳！我来看看我的员工！\n\n' +
+        '第二场：厨房门口 日 内\n' +
+        '人物：林微、沈律、顾航\n' +
+        '△ 午饭后。顾航借口洗手进了厨房，沈律也跟着走了进去。\n' +
+        '顾航：（压低声音）老沈，明晚那个董事会议你可得帮我撑住。\n' +
+        '沈律：（声音很轻）该等的，我会等。\n\n';
+    }
+
+    var editPrompt = '你是丁老师的数字分身，现在需要根据诊断报告修改学生的剧本。\n\n' +
+      '【修改指令】\n' + instruction + '\n\n' +
+      '【诊断报告】\n' + (diagRef || '无诊断报告，请根据修改指令直接修改') + '\n\n' +
+      '【原始剧本】\n' + scriptRef + '\n\n' +
+      '请根据以上信息修改剧本。要求：\n' +
+      '1. 严格遵循修改指令中提到的修改方向\n' +
+      '2. 参考诊断报告中的问题逐条修改\n' +
+      '3. 保持原文的风格和语气，只修改需要修改的部分\n' +
+      '4. 输出完整的修改后剧本（不要只输出修改片段）\n' +
+      '5. 在剧本开头用简短说明你做了哪些主要修改（3-5行即可）\n' +
+      '6. 严禁使用Markdown格式，用纯文本输出\n' +
+      '7. 必须使用中文标点符号\n' +
+      formatTemplate;
+
+    try {
+      var cfg = loadApiConfig();
+      if (!cfg.key || cfg.key.length < 10) { showToast('请先配置API密钥', 'info'); return; }
+
+      var response = await fetch((cfg.baseUrl || cfg.base) + '/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + cfg.key },
+        body: JSON.stringify({
+          model: cfg.model,
+          messages: [
+            { role: 'system', content: SW_SYSTEM_PROMPT },
+            { role: 'user', content: editPrompt }
+          ],
+          temperature: 0.6,
+          max_tokens: 8000,
+          stream: true
+        })
+      });
+
+      if (!response.ok) {
+        outputEl.innerHTML = '<span style="color:var(--danger);">修改失败，请重试</span>';
+        return;
+      }
+
+      var reader = response.body.getReader();
+      var decoder = new TextDecoder();
+      var fullText = '';
+      var buffer = '';
+
+      while (true) {
+        var result = await reader.read();
+        if (result.done) break;
+        buffer += decoder.decode(result.value, { stream: true });
+        var lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        for (var i = 0; i < lines.length; i++) {
+          var line = lines[i].trim();
+          if (!line || !line.startsWith('data:')) continue;
+          var data = line.substring(5).trim();
+          if (data === '[DONE]') continue;
+          try {
+            var json = JSON.parse(data);
+            var delta = json.choices && json.choices[0] && json.choices[0].delta;
+            if (delta && delta.content) {
+              fullText += delta.content;
+              outputEl.innerHTML = swRenderDiagnosis(fullText);
+              if (swIsNearBottom(outputEl, 120)) { outputEl.scrollTop = outputEl.scrollHeight; }
+            }
+          } catch (e) {}
+        }
+      }
+
+      outputEl.setAttribute('data-full-text', fullText);
+      outputEl.innerHTML = swRenderDiagnosis(fullText);
+      showToast('剧本修改完成！可在上方区域编辑', 'success');
+    } catch (e) {
+      outputEl.innerHTML = '<span style="color:var(--danger);">修改出错，请检查网络和API配置</span>';
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '&#9999; 开始修改剧本';
+    }
+  }
+
+  function swGetEditedText() {
+    var el = document.getElementById('sw-edit-output');
+    // 优先使用 data-full-text，其次使用 innerText
+    var full = el.getAttribute('data-full-text');
+    if (full) return full;
+    return el.innerText.trim();
+  }
+
+  function swCopyEditedScript() {
+    var text = swGetEditedText();
+    if (!text || text.indexOf('AI修改后的剧本') === 0) { showToast('暂无修改内容', 'info'); return; }
+    navigator.clipboard.writeText(text).then(function() { showToast('已复制到剪贴板', 'success'); });
+  }
+
+  function swDownloadEditedScript(format) {
+    var text = swGetEditedText();
+    if (!text || text.indexOf('AI修改后的剧本') === 0) { showToast('暂无修改内容', 'info'); return; }
+    var ts = new Date();
+    var dateStr = ts.getFullYear() + '年' + (ts.getMonth()+1) + '月' + ts.getDate() + '日';
+
+    if (format === 'md') {
+      var blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = '修改后剧本_' + dateStr + '.md';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else {
+      var docHtml = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>@page{size:595.3pt 841.9pt;margin:72.0pt;}body{font-family:"宋体","SimSun",serif;font-size:12pt;line-height:1.75;color:#222;}h1{font-family:"黑体","SimHei",sans-serif;font-size:18pt;text-align:center;margin:0 0 12pt 0;border-bottom:2pt solid #1a237e;padding-bottom:6pt;}p{margin:0 0 8pt 0;text-indent:2em;}p.no-indent{text-indent:0;}hr{border:none;border-top:0.5pt solid #ccc;margin:10pt 0;}</style></head><body><h1>修改后剧本</h1>' + swRenderDocx(text, dateStr) + '</body></html>';
+      var blob2 = new Blob(['\ufeff' + docHtml], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document;charset=utf-8' });
+      var url2 = URL.createObjectURL(blob2);
+      var a2 = document.createElement('a');
+      a2.href = url2; a2.download = '修改后剧本_' + dateStr + '.docx';
+      document.body.appendChild(a2); a2.click(); document.body.removeChild(a2);
+      URL.revokeObjectURL(url2);
+    }
+    showToast('文件下载已开始', 'success');
+  }
+
+  function swDownloadDiag(format) {
+    if (!swDiagFullText) { showToast('暂无诊断内容', 'info'); return; }
+    var blob;
+    var filename;
+    var ts = new Date();
+    var dateStr = ts.getFullYear() + '年' + (ts.getMonth()+1) + '月' + ts.getDate() + '日';
+
+    if (format === 'md') {
+      blob = new Blob([swDiagFullText], { type: 'text/markdown;charset=utf-8' });
+      filename = '剧本诊断报告_' + dateStr + '.md';
+    } else {
+      // 专业的 Word 文档排版
+      var docHtml = swRenderDocx(swDiagFullText, dateStr);
+      var htmlContent = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8">' +
+        '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->' +
+        '<style>' +
+        '@page{size:595.3pt 841.9pt;margin:72.0pt 72.0pt 72.0pt 72.0pt;}' +
+        'body{font-family:"宋体","SimSun","Microsoft YaHei",serif;font-size:12pt;line-height:1.75;color:#222;}' +
+        'h1{font-family:"黑体","SimHei","Microsoft YaHei",sans-serif;font-size:22pt;font-weight:bold;text-align:center;margin:0 0 6pt 0;padding-bottom:8pt;border-bottom:2pt solid #1a237e;letter-spacing:2pt;}' +
+        'h2{font-family:"黑体","SimHei","Microsoft YaHei",sans-serif;font-size:14pt;font-weight:bold;color:#1a237e;margin:18pt 0 8pt 0;padding:4pt 0;border-bottom:1pt solid #ccc;}' +
+        '.subtitle{text-align:center;font-size:10.5pt;color:#666;margin-bottom:16pt;}' +
+        '.info-table{width:100%;border-collapse:collapse;margin:8pt 0 12pt 0;font-size:11pt;}' +
+        '.info-table td{padding:4pt 8pt;border-bottom:0.5pt solid #ddd;}' +
+        '.info-table td:first-child{width:25%;color:#666;font-weight:bold;background:#f5f5f5;}' +
+        '.score-table{width:100%;border-collapse:collapse;margin:8pt 0;text-align:center;font-size:11pt;}' +
+        '.score-table th{background:#1a237e;color:#fff;padding:6pt;font-weight:bold;border:0.5pt solid #1a237e;}' +
+        '.score-table td{padding:6pt;border:0.5pt solid #ccc;}' +
+        '.score-table .total{background:#fff3e0;font-weight:bold;font-size:12pt;color:#e65100;}' +
+        '.score-table .total-label{background:#ffe0b2;font-weight:bold;}' +
+        'p{margin:0 0 8pt 0;text-indent:2em;}' +
+        'p.no-indent{text-indent:0;}' +
+        '.issue-block{margin:6pt 0 10pt 0;padding:8pt 10pt;border-left:3pt solid #1a237e;background:#f8f8ff;}' +
+        '.issue-block.p0{border-left-color:#d32f2f;background:#fff5f5;}' +
+        '.issue-block.p1{border-left-color:#f57c00;background:#fff8e1;}' +
+        '.issue-block.p2{border-left-color:#388e3c;background:#f1f8e9;}' +
+        '.issue-num{font-weight:bold;font-size:11pt;margin-bottom:4pt;}' +
+        '.issue-label{font-weight:bold;color:#333;}' +
+        '.footer{text-align:center;font-size:9pt;color:#999;margin-top:20pt;padding-top:8pt;border-top:0.5pt solid #eee;}' +
+        'hr{border:none;border-top:0.5pt solid #ccc;margin:10pt 0;}' +
+        '</style></head><body>' + docHtml + '</body></html>';
+      blob = new Blob(['\ufeff' + htmlContent], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document;charset=utf-8' });
+      filename = '剧本诊断报告_' + dateStr + '.docx';
+    }
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('文件下载已开始', 'success');
+  }
+
+  // Word 文档专用渲染：将纯文本诊断报告转为排版良好的 HTML
+  function swRenderDocx(text, dateStr) {
+    if (!text) return '';
+    var s = swFixPunctuation(text);
+    // 去除 markdown 残留
+    s = s.replace(/\*\*([^*]+)\*\*/g, '$1');
+    s = s.replace(/\*([^*]+)\*/g, '$1');
+    s = s.replace(/^#{1,6}\s+/gm, '');
+    s = s.replace(/^>\s+/gm, '');
+    s = s.replace(/`([^`]+)`/g, '$1');
+    s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    var html = '';
+    var lines = s.split('\n');
+    var inInfoTable = false;
+    var inScoreTable = false;
+    var infoRows = [];
+    var scoreRows = [];
+
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) continue;
+
+      // 跳过分隔线
+      if (/^={3,}/.test(line) || /^-{3,}/.test(line)) {
+        if (inInfoTable) { html += swBuildInfoTable(infoRows); inInfoTable = false; infoRows = []; }
+        if (inScoreTable) { html += swBuildScoreTable(scoreRows); inScoreTable = false; scoreRows = []; }
+        continue;
+      }
+
+      // 主标题
+      var titleMatch = line.match(/^剧本《([^》]+)》诊断报告$/);
+      if (titleMatch) {
+        html += '<h1>剧本《' + titleMatch[1] + '》诊断报告</h1>';
+        html += '<div class="subtitle">丁老师数字分身 · 影视编剧课程学习助手 生成于 ' + dateStr + '</div>';
+        continue;
+      }
+      // 兼容旧标题
+      if (/^影视编剧剧本诊断报告$/.test(line)) {
+        html += '<h1>影视编剧剧本诊断报告</h1>';
+        html += '<div class="subtitle">丁老师数字分身 · 影视编剧课程学习助手 生成于 ' + dateStr + '</div>';
+        continue;
+      }
+
+      // 【标题】转为 h2
+      var h2Match = line.match(/^【([^】]+)】(.*)$/);
+      if (h2Match) {
+        if (inInfoTable) { html += swBuildInfoTable(infoRows); inInfoTable = false; infoRows = []; }
+        if (inScoreTable) { html += swBuildScoreTable(scoreRows); inScoreTable = false; scoreRows = []; }
+        html += '<h2>' + h2Match[1] + '</h2>';
+        if (h2Match[2]) {
+          html += '<p class="no-indent" style="color:#666;font-size:10.5pt;">' + h2Match[2] + '</p>';
+        }
+        // 下一个如果是基本信息或评分，进入表格模式
+        if (/基本信息/.test(h2Match[1])) inInfoTable = true;
+        if (/总体评分/.test(h2Match[1])) inScoreTable = true;
+        continue;
+      }
+
+      // 信息表格行（片名：xxx / 剧本类型：xxx 等）
+      if (inInfoTable) {
+        var infoMatch = line.match(/^(.{2,8})[：:]\s*(.+)$/);
+        if (infoMatch) {
+          infoRows.push([infoMatch[1], infoMatch[2]]);
+          continue;
+        } else {
+          html += swBuildInfoTable(infoRows);
+          inInfoTable = false;
+          infoRows = [];
+        }
+      }
+
+      // 评分表格行（叙事质量：XX/100）
+      if (inScoreTable) {
+        var scoreMatch = line.match(/^(.{2,8})[：:]\s*(\d+(?:\.\d+)?\/100)$/);
+        if (scoreMatch) {
+          scoreRows.push([scoreMatch[1], scoreMatch[2]]);
+          continue;
+        }
+        var totalMatch = line.match(/^(综合评分|总分)[：:]\s*(\d+(?:\.\d+)?\/100)$/);
+        if (totalMatch) {
+          scoreRows.push([totalMatch[1], totalMatch[2], 'total']);
+          continue;
+        }
+        if (/^综合评分/.test(line)) {
+          var tm = line.match(/综合评分[：:]\s*(\S+)/);
+          if (tm) { scoreRows.push(['综合评分', tm[1], 'total']); continue; }
+        }
+        // 评分表结束
+        if (scoreRows.length > 0) {
+          html += swBuildScoreTable(scoreRows);
+          inScoreTable = false;
+          scoreRows = [];
+        }
+      }
+
+      // 问题条目（1. 位置：xxx）
+      var issueMatch = line.match(/^(\d+)[.、]\s*(.*)$/);
+      if (issueMatch) {
+        // 检测 P0/P1/P2 级别
+        var pLevel = '';
+        var prevH2 = html.match(/<h2[^>]*>([^<]+)<\/h2>/g);
+        var lastH2 = prevH2 ? prevH2[prevH2.length-1] : '';
+        if (/P0|致命/.test(lastH2)) pLevel = 'p0';
+        else if (/P1|重要/.test(lastH2)) pLevel = 'p1';
+        else if (/P2|优化|建议/.test(lastH2)) pLevel = 'p2';
+
+        // 收集该问题的后续行（缩进行或子字段）
+        var issueContent = '<div class="issue-num">问题 ' + issueMatch[1] + '</div>';
+        var firstLine = issueMatch[2];
+        if (firstLine) {
+          var fieldMatch = firstLine.match(/^(位置|问题|依据|建议|修改方向|优化建议)[：:]\s*(.+)$/);
+          if (fieldMatch) {
+            issueContent += '<p class="no-indent" style="margin-bottom:4pt;"><span class="issue-label">' + fieldMatch[1] + '：</span>' + fieldMatch[2] + '</p>';
+          } else {
+            issueContent += '<p class="no-indent" style="margin-bottom:4pt;">' + firstLine + '</p>';
+          }
+        }
+        // 继续收集后续行
+        i++;
+        while (i < lines.length) {
+          var nextLine = lines[i].trim();
+          if (!nextLine) { i++; continue; }
+          if (/^\d+[.、]\s/.test(nextLine)) { i--; break; }
+          if (/^【/.test(nextLine)) { i--; break; }
+          if (/^[={-]{3,}/.test(nextLine)) { i--; break; }
+          var subField = nextLine.match(/^(位置|问题|依据|建议|修改方向|优化建议|说明)[：:]\s*(.+)$/);
+          if (subField) {
+            issueContent += '<p class="no-indent" style="margin-bottom:4pt;"><span class="issue-label">' + subField[1] + '：</span>' + subField[2] + '</p>';
+          } else {
+            issueContent += '<p class="no-indent" style="margin-bottom:4pt;">' + nextLine + '</p>';
+          }
+          i++;
+        }
+        html += '<div class="issue-block ' + pLevel + '">' + issueContent + '</div>';
+        continue;
+      }
+
+      // 普通段落
+      html += '<p>' + line + '</p>';
+    }
+
+    // 收尾
+    if (inInfoTable) html += swBuildInfoTable(infoRows);
+    if (inScoreTable) html += swBuildScoreTable(scoreRows);
+
+    html += '<div class="footer">本报告由丁老师数字分身（影视编剧课程学习助手）自动生成 · 仅供学习参考</div>';
+    return html;
+  }
+
+  function swBuildInfoTable(rows) {
+    if (!rows.length) return '';
+    var html = '<table class="info-table">';
+    for (var i = 0; i < rows.length; i++) {
+      html += '<tr><td>' + rows[i][0] + '</td><td>' + rows[i][1] + '</td></tr>';
+    }
+    html += '</table>';
+    return html;
+  }
+
+  function swBuildScoreTable(rows) {
+    if (!rows.length) return '';
+    var html = '<table class="score-table"><tr><th>评分维度</th><th>得分</th></tr>';
+    for (var i = 0; i < rows.length; i++) {
+      var isTotal = rows[i][2] === 'total';
+      html += '<tr><td class="' + (isTotal ? 'total-label' : '') + '">' + rows[i][0] + '</td><td class="' + (isTotal ? 'total' : '') + '">' + rows[i][1] + '</td></tr>';
+    }
+    html += '</table>';
+    return html;
   }
 
 
@@ -11798,9 +12634,9 @@
 
     try {
       var text = '';
-      if (fileExt === 'txt' || fileExt === 'fountain' || fileExt === 'fdx') {
+      if (fileExt === 'txt' || fileExt === 'fountain' || fileExt === 'fdx' || fileExt === 'md' || fileExt === 'markdown') {
         text = await file.text();
-      } else if (fileExt === 'docx' || fileExt === 'doc') {
+      } else if (fileExt === 'docx') {
         // Read docx using mammoth.js
         try {
           var arrayBuffer = await file.arrayBuffer();
@@ -11812,6 +12648,13 @@
           }
         } catch (docErr) {
           swAddMessage('teacher', '读取Word文档时出了问题（' + docErr.message + '）。请尝试将文件另存为 .txt 格式后重新上传，或者直接把剧本内容粘贴到对话框里。');
+          return;
+        }
+      } else if (fileExt === 'doc') {
+        // 旧版 .doc 格式：使用通用读取函数
+        text = await swReadFileAsText(file);
+        if (!text || text.trim().length < 50) {
+          swAddMessage('teacher', '同学，读取这个 .doc 文件的内容比较困难（旧版 Word 格式兼容性有限）。建议你将文件另存为 .docx 或 .txt 格式后重新上传，或者直接把剧本内容粘贴到对话框里。');
           return;
         }
       } else if (fileExt === 'pdf') {
@@ -11846,16 +12689,18 @@
         '请按以下方式组织你的回答：\n' +
         '1. 先总体评价这个剧本（200字左右），让同学了解整体情况\n' +
         '2. 按问题的严重程度，从最严重的问题开始，逐一指出\n' +
-        '   - 致命问题（必须修改，否则剧本不成立）\n' +
-        '   - 重要问题（强烈建议修改，影响剧本质量）\n' +
-        '   - 建议优化（可以改进，提升剧本品质）\n' +
+        '   - 致命问题（P0级，必须修改，否则剧本不成立）\n' +
+        '   - 重要问题（P1级，强烈建议修改，影响剧本质量）\n' +
+        '   - 建议优化（P2级，可以改进，提升剧本品质）\n' +
         '3. 每个问题请给出具体的修改建议或2-3种可选方案\n' +
         '4. 最后给出优先修改顺序建议\n\n' +
         '注意：\n' +
+        '- 不要对剧本进行打分或评分，只做问题诊断和修改建议\n' +
         '- 每条判断请引用理论概念名称和原理\n' +
         '- 先肯定优点，再指出问题，最后给方向\n' +
         '- 语言亲切自然，像面对面辅导一样\n' +
-        '- 严禁使用Markdown格式\n\n' +
+        '- 严禁使用Markdown格式\n' +
+        '- 必须使用中文标点：书名用《》标注，引用用中文引号“”标注，不要用英文直引号\n\n' +
         '【剧本文本】\n' + swUploadedScript;
 
       // Stream the response
