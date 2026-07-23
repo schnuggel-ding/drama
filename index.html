@@ -1754,6 +1754,222 @@
 </head>
 <body>
 
+<!-- Mac 桌面端导航栏（仅在桌面应用中显示） -->
+<div id="desktop-titlebar" style="display:none; position:fixed; top:0; left:0; right:0; height:38px; background:rgba(255,255,255,0.7); backdrop-filter:saturate(180%) blur(20px); -webkit-app-region:drag; z-index:99999; border-bottom:1px solid rgba(0,0,0,0.06);">
+  <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-size:12px; font-weight:600; color:#888; -webkit-app-region:no-drag; pointer-events:none; letter-spacing:0.5px;">文影数智教研工作台</div>
+</div>
+
+<!-- 桌面端一级菜单：主分类入口 -->
+<div id="desktop-rail" style="display:none; position:fixed; top:38px; left:0; bottom:0; width:56px; background:#1e1e2e; z-index:99998; overflow-y:auto; overflow-x:hidden; scrollbar-width:thin; border-right:1px solid rgba(0,0,0,0.3); box-shadow:2px 0 8px rgba(0,0,0,0.15);">
+  <div class="rail-items" style="padding:8px 0;">
+    <div class="rail-item active" data-cat="home" onclick="desktopNavCategory('home')" title="首页">
+      <div class="rail-icon">&#8962;</div>
+      <div class="rail-label">首页</div>
+    </div>
+    <div class="rail-divider"></div>
+    <div class="rail-item" data-cat="writing" onclick="desktopNavCategory('writing')" title="论文写作">
+      <div class="rail-icon">&#128221;</div>
+      <div class="rail-label">论文</div>
+    </div>
+    <div class="rail-item" data-cat="teaching" onclick="desktopNavCategory('teaching')" title="教学工具">
+      <div class="rail-icon">&#127979;</div>
+      <div class="rail-label">教学</div>
+    </div>
+    <div class="rail-item" data-cat="grading" onclick="desktopNavCategory('grading')" title="作业批改">
+      <div class="rail-icon">&#9989;</div>
+      <div class="rail-label">批改</div>
+    </div>
+    <div class="rail-item" data-cat="competition" onclick="desktopNavCategory('competition')" title="竞赛策划">
+      <div class="rail-icon">&#127942;</div>
+      <div class="rail-label">竞赛</div>
+    </div>
+    <div class="rail-divider"></div>
+    <div class="rail-item" data-cat="screenwriting" onclick="desktopNavCategory('screenwriting')" title="编剧课程">
+      <div class="rail-icon">&#127909;</div>
+      <div class="rail-label">编剧</div>
+    </div>
+  </div>
+</div>
+
+<!-- 桌面端二级导航（展开的模块名称列表） -->
+<div id="desktop-subrail" style="display:none; position:fixed; top:38px; left:56px; bottom:0; width:200px; background:#f5f3ee; z-index:99997; overflow-y:auto; border-right:1px solid rgba(0,0,0,0.06);">
+  <div id="desktop-subrail-content" style="padding:12px 0;">
+    <!-- 动态填充 -->
+  </div>
+</div>
+
+<style id="desktop-style">
+  body.desktop-mode { 
+    padding-top: 38px !important; 
+    padding-left: 256px !important; 
+  }
+
+  /* 隐藏原有的顶部header */
+  body.desktop-mode .site-header { display: none !important; }
+  
+  /* 覆盖main-content的居中布局 */
+  body.desktop-mode .main-content { 
+    margin-top: 0 !important; 
+    margin-left: 0 !important; 
+    margin-right: 0 !important;
+    padding: 0 !important; 
+    max-width: none !important;
+  }
+  body.desktop-mode .progress-bar { top: 38px !important; left: 256px !important; }
+
+  /* 桌面端文件夹选择按钮 */
+  .desktop-folder-btn { display: none; }
+  body.desktop-mode .desktop-folder-btn { display: inline-flex; }
+
+  /* 左侧导航栏样式 */
+  .rail-item {
+    width: 44px;
+    min-height: 44px;
+    margin: 2px auto;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: #888;
+    font-size: 18px;
+    position: relative;
+    padding: 4px 0;
+  }
+  .rail-item:hover {
+    background: rgba(255,255,255,0.08);
+    color: #ccc;
+  }
+  .rail-item.active {
+    background: rgba(124,140,248,0.2);
+    color: #7c8cf8;
+  }
+  .rail-item.active::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 20px;
+    background: #7c8cf8;
+    border-radius: 0 2px 2px 0;
+  }
+  .rail-icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+  .rail-label {
+    font-size: 9px;
+    color: #888;
+    text-align: center;
+    margin-top: 3px;
+    line-height: 1.2;
+    font-weight: 500;
+  }
+  .rail-item:hover .rail-label {
+    color: #ccc;
+  }
+  .rail-item.active .rail-label {
+    color: #7c8cf8;
+  }
+  .rail-divider {
+    height: 1px;
+    margin: 6px 12px;
+    background: rgba(255,255,255,0.06);
+  }
+  .rail-group-label {
+    text-align: center;
+    font-size: 10px;
+    color: #555;
+    margin: 6px 0 2px;
+    font-weight: 600;
+  }
+
+  /* 二级导航样式 */
+  .subrail-section {
+    margin-bottom: 8px;
+  }
+  .subrail-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: #999;
+    text-transform: uppercase;
+    padding: 8px 16px 4px;
+    letter-spacing: 0.5px;
+  }
+  .subrail-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: #444;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 0;
+  }
+  .subrail-item:hover {
+    background: rgba(124,140,248,0.08);
+    color: #7c8cf8;
+  }
+  .subrail-item.active {
+    background: rgba(124,140,248,0.12);
+    color: #7c8cf8;
+    font-weight: 600;
+    border-left: 3px solid #7c8cf8;
+  }
+  .subrail-icon {
+    font-size: 14px;
+    width: 20px;
+    text-align: center;
+  }
+
+  /* 桌面端模块内容区域适配 */
+  body.desktop-mode .panel {
+    border-radius: 0;
+    border: none;
+    margin: 0;
+  }
+  body.desktop-mode .page-view {
+    padding: 16px 20px;
+  }
+  body.desktop-mode .home-hero {
+    padding: 20px 0;
+  }
+  body.desktop-mode .category-nav {
+    display: none;
+  }
+
+  /* 桌面端API设置等按钮移到二级导航底部 */
+  #desktop-subrail-footer {
+    margin-top: auto;
+    padding: 12px 16px;
+    border-top: 1px solid rgba(0,0,0,0.06);
+  }
+  #desktop-subrail-footer button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    border: none;
+    background: none;
+    color: #666;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+  #desktop-subrail-footer button:hover {
+    background: rgba(124,140,248,0.08);
+    color: #7c8cf8;
+  }
+</style>
+
+
 <!-- HEADER -->
 <header class="site-header">
   <div class="header-inner">
@@ -1784,13 +2000,13 @@
 
     <div class="category-nav" id="category-nav">
       <div class="category-tab active" data-category="all" onclick="filterModules('all')">
-        &#128230; 全部 <span class="tab-count">14</span>
+        &#128230; 全部 <span class="tab-count">12</span>
       </div>
       <div class="category-tab" data-category="writing" onclick="filterModules('writing')">
-        &#128221; 论文写作 <span class="tab-count">3</span>
+        &#128221; 科研辅助 <span class="tab-count">3</span>
       </div>
       <div class="category-tab" data-category="teaching" onclick="filterModules('teaching')">
-        &#127979; 教学工具 <span class="tab-count">6</span>
+        &#127979; 教学工具 <span class="tab-count">4</span>
       </div>
       <div class="category-tab" data-category="grading" onclick="filterModules('grading')">
         &#9989; 作业批改 <span class="tab-count">2</span>
@@ -1803,47 +2019,13 @@
       </div>
     </div>
 
-    <!-- 论文写作 -->
+    <!-- 科研辅助 -->
     <div class="module-section" data-section="writing">
       <div class="module-section-title">
-        <span class="section-icon">&#128221;</span> 论文写作
+        <span class="section-icon">&#128221;</span> 科研辅助
         <span class="section-line"></span>
       </div>
       <div class="module-grid">
-        <div class="module-card" data-category="writing" onclick="enterModule('paper')">
-          <div class="module-card-header">
-            <div class="module-icon paper">&#128196;</div>
-            <div>
-              <h3>学术论文写作助手</h3>
-              <div class="sub">戏剧与影视学方向</div>
-            </div>
-          </div>
-          <p class="desc">从选题到写作全流程辅助。支持研究方向扩展、论文题目推荐、关键词矩阵设计、分层文献检索、PDF合规下载核验、Excel资料总表生成、参考文献格式整理、写作框架搭建。</p>
-          <div class="module-tags">
-            <span class="tag">选题规划</span>
-            <span class="tag">文献检索</span>
-            <span class="tag">资料管理</span>
-            <span class="tag">写作辅助</span>
-            <span class="tag">参考文献</span>
-          </div>
-        </div>
-        <div class="module-card" data-category="writing" onclick="enterModule('music')">
-          <div class="module-card-header">
-            <div class="module-icon music">&#127925;</div>
-            <div>
-              <h3>音乐学论文写作助手</h3>
-              <div class="sub">艺术学·音乐学方向</div>
-            </div>
-          </div>
-          <p class="desc">覆盖12个音乐学研究板块。支持乐谱、音响、田野调查等特色资料整理，分层检索中外核心期刊，生成含11个工作表的Excel资料总表，辅助论文框架与音乐作品分析表。</p>
-          <div class="module-tags">
-            <span class="tag">音乐学选题</span>
-            <span class="tag">乐谱音响</span>
-            <span class="tag">田野调查</span>
-            <span class="tag">核心期刊</span>
-            <span class="tag">作品分析</span>
-          </div>
-        </div>
         <div class="module-card" data-category="writing" onclick="enterModule('polish')">
           <div class="module-card-header">
             <div class="module-icon" style="background: linear-gradient(135deg, #9c27b0, #e91e63);">&#9999;</div>
@@ -1859,6 +2041,38 @@
             <span class="tag">中英翻译</span>
             <span class="tag">格式规范</span>
             <span class="tag">逻辑优化</span>
+          </div>
+        </div>
+        <div class="module-card" data-category="writing" onclick="enterModule('research')">
+          <div class="module-card-header">
+            <div class="module-icon" style="background: linear-gradient(135deg, #66bb6a, #43a047);">&#128218;</div>
+            <div>
+              <h3>教研项目申报书助手</h3>
+              <div class="sub">项目申报·智能撰写</div>
+            </div>
+          </div>
+          <p class="desc">辅助教研项目申报书撰写。支持项目背景、研究目标、实施方案、预期成果等核心字段的结构化录入与智能填写引导，AI自动生成完整申报书文档。</p>
+          <div class="module-tags">
+            <span class="tag">项目申报</span>
+            <span class="tag">智能填写</span>
+            <span class="tag">多级别</span>
+            <span class="tag">预算管理</span>
+          </div>
+        </div>
+        <div class="module-card" data-category="writing" onclick="enterModule('fund')">
+          <div class="module-card-header">
+            <div class="module-icon" style="background: linear-gradient(135deg, #ab47bc, #7b1fa2);">&#128200;</div>
+            <div>
+              <h3>基金项目申报助手</h3>
+              <div class="sub">基金申报·流程引导</div>
+            </div>
+          </div>
+          <p class="desc">辅助基金项目申报全流程。支持国家社科基金、教育部、省部级等多种基金类型，自动适配申报格式与字段要求，涵盖申请理由、研究计划、预算概算、团队信息。</p>
+          <div class="module-tags">
+            <span class="tag">基金申报</span>
+            <span class="tag">多基金类型</span>
+            <span class="tag">流程引导</span>
+            <span class="tag">预算管理</span>
           </div>
         </div>
       </div>
@@ -1955,37 +2169,6 @@
             <span class="tag">多格式支持</span>
           </div>
         </div>
-        <div class="module-card" data-category="teaching" onclick="enterModule('research')">
-          <div class="module-card-header">
-            <div class="module-icon" style="background: linear-gradient(135deg, #66bb6a, #43a047);">&#128218;</div>
-            <div>
-              <h3>教研项目申报书助手</h3>
-              <div class="sub">项目申报·智能撰写</div>
-            </div>
-          </div>
-          <p class="desc">辅助教研项目申报书撰写。支持项目背景、研究目标、实施方案、预期成果等核心字段的结构化录入与智能填写引导，AI自动生成完整申报书文档。</p>
-          <div class="module-tags">
-            <span class="tag">项目申报</span>
-            <span class="tag">智能填写</span>
-            <span class="tag">多级别</span>
-            <span class="tag">预算管理</span>
-          </div>
-        </div>
-        <div class="module-card" data-category="teaching" onclick="enterModule('fund')">
-          <div class="module-card-header">
-            <div class="module-icon" style="background: linear-gradient(135deg, #ab47bc, #7b1fa2);">&#128200;</div>
-            <div>
-              <h3>基金项目申报助手</h3>
-              <div class="sub">基金申报·流程引导</div>
-            </div>
-          </div>
-          <p class="desc">辅助基金项目申报全流程。支持国家社科基金、教育部、省部级等多种基金类型，自动适配申报格式与字段要求，涵盖申请理由、研究计划、预算概算、团队信息。</p>
-          <div class="module-tags">
-            <span class="tag">基金申报</span>
-            <span class="tag">多基金类型</span>
-            <span class="tag">流程引导</span>
-            <span class="tag">预算管理</span>
-          </div>
         </div>
       </div>
     </div>
@@ -2096,59 +2279,23 @@
           <thead>
             <tr style="border-bottom:2px solid var(--rule);">
               <th style="text-align:left; padding:0.6rem 0.75rem; color:var(--muted); font-weight:600;">功能</th>
-              <th style="text-align:center; padding:0.6rem; color:var(--muted); font-weight:600;">论文写作</th>
-              <th style="text-align:center; padding:0.6rem; color:var(--muted); font-weight:600;">音乐学论文</th>
               <th style="text-align:center; padding:0.6rem; color:var(--muted); font-weight:600;">作业批改</th>
               <th style="text-align:center; padding:0.6rem; color:var(--muted); font-weight:600;">教材写作</th>
             </tr>
           </thead>
           <tbody>
             <tr style="border-bottom:1px solid var(--rule);">
-              <td style="padding:0.5rem 0.75rem; color:var(--ink2);">选题规划</td>
-              <td style="text-align:center; color:var(--success);">&#10003;</td>
-              <td style="text-align:center; color:var(--success);">&#10003;</td>
-              <td style="text-align:center; color:var(--muted);">—</td>
-              <td style="text-align:center; color:var(--success);">&#10003;</td>
-            </tr>
-            <tr style="border-bottom:1px solid var(--rule);">
-              <td style="padding:0.5rem 0.75rem; color:var(--ink2);">文献检索与下载</td>
-              <td style="text-align:center; color:var(--success);">&#10003;</td>
-              <td style="text-align:center; color:var(--success);">&#10003;</td>
-              <td style="text-align:center; color:var(--muted);">—</td>
-              <td style="text-align:center; color:var(--success);">&#10003;</td>
-            </tr>
-            <tr style="border-bottom:1px solid var(--rule);">
-              <td style="padding:0.5rem 0.75rem; color:var(--ink2);">Excel资料总表</td>
-              <td style="text-align:center; color:var(--success);">&#10003;</td>
-              <td style="text-align:center; color:var(--success);">&#10003;</td>
-              <td style="text-align:center; color:var(--muted);">—</td>
-              <td style="text-align:center; color:var(--success);">&#10003;</td>
-            </tr>
-            <tr style="border-bottom:1px solid var(--rule);">
-              <td style="padding:0.5rem 0.75rem; color:var(--ink2);">写作框架辅助</td>
-              <td style="text-align:center; color:var(--success);">&#10003;</td>
-              <td style="text-align:center; color:var(--success);">&#10003;</td>
-              <td style="text-align:center; color:var(--muted);">—</td>
-              <td style="text-align:center; color:var(--success);">&#10003;</td>
-            </tr>
-            <tr style="border-bottom:1px solid var(--rule);">
               <td style="padding:0.5rem 0.75rem; color:var(--ink2);">评分与成绩管理</td>
-              <td style="text-align:center; color:var(--muted);">—</td>
-              <td style="text-align:center; color:var(--muted);">—</td>
               <td style="text-align:center; color:var(--success);">&#10003;</td>
               <td style="text-align:center; color:var(--muted);">—</td>
             </tr>
             <tr style="border-bottom:1px solid var(--rule);">
               <td style="padding:0.5rem 0.75rem; color:var(--ink2);">教学设计</td>
               <td style="text-align:center; color:var(--muted);">—</td>
-              <td style="text-align:center; color:var(--muted);">—</td>
-              <td style="text-align:center; color:var(--muted);">—</td>
               <td style="text-align:center; color:var(--success);">&#10003;</td>
             </tr>
             <tr>
               <td style="padding:0.5rem 0.75rem; color:var(--ink2);">版权合规审查</td>
-              <td style="text-align:center; color:var(--muted);">—</td>
-              <td style="text-align:center; color:var(--muted);">—</td>
               <td style="text-align:center; color:var(--muted);">—</td>
               <td style="text-align:center; color:var(--success);">&#10003;</td>
             </tr>
@@ -2157,914 +2304,6 @@
       </div>
     </div>
   </div>
-
-  <!-- ==================== MODULE: PAPER ==================== -->
-  <div class="page-view" id="page-paper">
-    <a class="back-link" onclick="showPage('home')">&#8592; 返回工作台首页</a>
-    <div class="breadcrumb-bar" style="padding:0 0 1rem;">
-      <div class="breadcrumb">
-        <a onclick="showPage('home')">首页</a>
-        <span class="sep">/</span>
-        <span class="current">学术论文写作助手</span>
-      </div>
-    </div>
-
-    <div class="workspace">
-      <aside class="sidebar">
-        <h4>操作步骤</h4>
-        <ul class="step-list" id="paper-steps">
-          <li class="active" data-step="1" onclick="goToStep('paper',1)"><span class="step-num">1</span>确定研究方向</li>
-          <li data-step="2" onclick="goToStep('paper',2)"><span class="step-num">2</span>选题规划与扩展</li>
-          <li data-step="3" onclick="goToStep('paper',3)"><span class="step-num">3</span>研究问题与关键词</li>
-          <li data-step="4" onclick="goToStep('paper',4)"><span class="step-num">4</span>文献检索策略</li>
-          <li data-step="5" onclick="goToStep('paper',5)"><span class="step-num">5</span>论文搜集与整理</li>
-          <li data-step="6" onclick="goToStep('paper',6)"><span class="step-num">6</span>写作框架与辅助</li>
-          <li data-step="7" onclick="goToStep('paper',7)"><span class="step-num">7</span>AI写作执行</li>
-        </ul>
-      </aside>
-
-      <div class="workspace-main">
-        <div class="progress-text">
-          <span>步骤进度</span>
-          <span id="paper-progress-label">1 / 7</span>
-        </div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-fill" id="paper-progress" style="width:14.3%"></div>
-        </div>
-
-        <!-- Paper Step 1 -->
-        <div class="step-content active" id="paper-step-1">
-          <div class="panel">
-            <div class="panel-header">
-              <div>
-                <h2>确定研究方向</h2>
-                <p>选择或输入您的研究方向，系统将据此提供针对性的选题建议</p>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>学科研究领域 <span class="hint">可多选</span></label>
-              <div class="checkbox-group" id="paper-field-group">
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>电影研究</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>电视剧研究</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>戏剧研究</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>网络视听</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>影视产业</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>纪录片</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>动画研究</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>影视技术</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>跨媒介叙事</div>
-              </div>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="form-group">
-              <label>研究阶段</label>
-              <div class="option-grid">
-                <div class="option-card" onclick="selectOption(this,'paper-stage')" data-value="explore">
-                  <div class="oc-icon">&#128269;</div>
-                  <div class="oc-title">探索阶段</div>
-                  <div class="oc-desc">仅有大致兴趣方向</div>
-                </div>
-                <div class="option-card" onclick="selectOption(this,'paper-stage')" data-value="topic">
-                  <div class="oc-icon">&#128209;</div>
-                  <div class="oc-title">已有题目</div>
-                  <div class="oc-desc">已确定论文题目</div>
-                </div>
-                <div class="option-card" onclick="selectOption(this,'paper-stage')" data-value="writing">
-                  <div class="oc-icon">&#9997;</div>
-                  <div class="oc-title">写作阶段</div>
-                  <div class="oc-desc">需要写作辅助</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label>补充说明 <span class="hint">可选，描述具体的研究兴趣、关注的作品或现象</span></label>
-              <textarea class="form-control" id="paper-note" placeholder="例如：我对近年来国产科幻电影的叙事策略感兴趣，特别关注《流浪地球》系列..."></textarea>
-            </div>
-
-            <div class="btn-row btn-row-end">
-              <button class="btn btn-primary" onclick="nextStep('paper')">下一步 &#8594;</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Paper Step 2 -->
-        <div class="step-content" id="paper-step-2">
-          <div class="panel">
-            <div class="panel-header">
-              <div>
-                <h2>选题规划与扩展</h2>
-                <p>根据研究方向，获取选题建议和研究角度扩展</p>
-              </div>
-            </div>
-            <div class="info-block">
-              <p><strong>提示：</strong>系统将根据您选择的研究领域和补充说明，生成3-5个可选论文题目，并从不同理论视角扩展研究角度。</p>
-            </div>
-            <div class="form-group">
-              <label>选题偏好</label>
-              <div class="checkbox-group" id="paper-pref-group">
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>理论深度优先</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>案例分析优先</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>产业研究导向</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>跨学科视角</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>前沿热点追踪</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>经典理论重读</div>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>目标成果类型</label>
-              <select class="form-control" id="paper-type">
-                <option value="">请选择</option>
-                <option value="journal">期刊论文</option>
-                <option value="degree">学位论文（本科）</option>
-                <option value="degree-master">学位论文（硕士）</option>
-                <option value="conference">会议论文</option>
-              </select>
-            </div>
-            <div class="btn-row">
-              <button class="btn btn-secondary" onclick="prevStep('paper')">&#8592; 上一步</button>
-              <button class="btn btn-primary" onclick="nextStep('paper')">下一步 &#8594;</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Paper Step 3 -->
-        <div class="step-content" id="paper-step-3">
-          <div class="panel">
-            <div class="panel-header">
-              <div>
-                <h2>研究问题与关键词</h2>
-                <p>设计研究问题矩阵和检索关键词</p>
-              </div>
-            </div>
-            <div class="info-block">
-              <p>在这一步中，系统将帮助您将论文方向转化为具体的学术研究问题，并生成中英文关键词矩阵，用于后续文献检索。</p>
-            </div>
-            <div class="form-group">
-              <label>是否已有明确的研究问题？</label>
-              <div class="option-grid" style="grid-template-columns: 1fr 1fr;">
-                <div class="option-card" onclick="selectOption(this,'paper-has-question')" data-value="yes">
-                  <div class="oc-title">已有研究问题</div>
-                  <div class="oc-desc">直接使用，进行关键词扩展</div>
-                </div>
-                <div class="option-card" onclick="selectOption(this,'paper-has-question')" data-value="no">
-                  <div class="oc-title">需要帮助设计</div>
-                  <div class="oc-desc">系统辅助生成研究问题</div>
-                </div>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>研究问题 / 核心关注点</label>
-              <textarea class="form-control" id="paper-question" placeholder="例如：数字技术如何改变中国纪录片的叙事美学？"></textarea>
-            </div>
-            <div class="form-group">
-              <label>理论视角 <span class="hint">可多选</span></label>
-              <div class="checkbox-group" id="paper-theory-group">
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>符号学</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>叙事学</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>女性主义</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>文化研究</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>媒介生态学</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>产业经济学</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>接受美学</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>后殖民理论</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>技术哲学</div>
-              </div>
-            </div>
-
-            <!-- AI Generate Topic/Title Section -->
-            <div class="form-group">
-              <label>AI 辅助生成选题</label>
-              <div class="info-block tip" style="margin-bottom:0.75rem;">
-                <p style="margin:0;">点击下方按钮，调用大模型根据您的研究方向和理论视角生成论文选题/题目。</p>
-              </div>
-              <div class="btn-row">
-                <button class="btn btn-sm btn-primary" id="paper-gen-topic-btn" onclick="generatePaperTopic()">&#9889; 生成论文选题</button>
-                <span id="paper-gen-topic-status" style="font-size:0.8rem;color:var(--muted);"></span>
-              </div>
-            </div>
-
-            <!-- AI Generation Result -->
-            <div id="paper-topic-result" style="display:none;">
-              <div class="summary-box" style="margin-bottom:1rem;">
-                <div class="flex-between" style="margin-bottom:0.75rem;">
-                  <h5 style="margin:0;">AI 生成的选题建议</h5>
-                  <div style="display:flex;gap:0.5rem;">
-                    <button class="btn btn-sm btn-secondary" onclick="generatePaperTopic()">&#8635; 重新生成</button>
-                  </div>
-                </div>
-                <div id="paper-topic-content" contenteditable="true" style="min-height:150px;max-height:400px;overflow-y:auto;background:var(--bg);border:1px solid var(--rule);border-radius:6px;padding:1rem;font-size:0.88rem;line-height:1.7;outline:none;white-space:pre-wrap;"></div>
-                <div class="btn-row" style="margin-top:0.75rem;">
-                  <button class="btn btn-sm btn-success" onclick="confirmPaperTopic()">&#10003; 满意，确认使用</button>
-                  <span style="font-size:0.8rem;color:var(--muted);margin-left:0.5rem;">确认后将自动填充到研究问题中，可继续手动修改</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="btn-row">
-              <button class="btn btn-secondary" onclick="prevStep('paper')">&#8592; 上一步</button>
-              <button class="btn btn-primary" onclick="nextStep('paper')">下一步 &#8594;</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Paper Step 4 -->
-        <div class="step-content" id="paper-step-4">
-          <div class="panel">
-            <div class="panel-header">
-              <div>
-                <h2>文献检索策略</h2>
-                <p>配置文献检索范围和优先级</p>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>文献语言偏好</label>
-              <div class="option-grid" style="grid-template-columns: repeat(3,1fr);">
-                <div class="option-card" onclick="selectOption(this,'paper-lang')" data-value="cn">
-                  <div class="oc-title">以中文为主</div>
-                </div>
-                <div class="option-card" onclick="selectOption(this,'paper-lang')" data-value="en">
-                  <div class="oc-title">以英文为主</div>
-                </div>
-                <div class="option-card" onclick="selectOption(this,'paper-lang')" data-value="both">
-                  <div class="oc-title">中英文并重</div>
-                </div>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>中文文献来源 <span class="hint">按优先级排列</span></label>
-              <div class="checkbox-group" id="paper-cn-source">
-                <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>万方数据</div>
-                <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>国家哲社文献中心</div>
-                <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>中国知网 (CNKI)</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>维普 (CQVIP)</div>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>外文文献来源</label>
-              <div class="checkbox-group" id="paper-en-source">
-                <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>Google Scholar</div>
-                <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>Web of Science</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>JSTOR</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>Scopus</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>SAGE</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>Taylor & Francis</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>Springer</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>其他</div>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>文献类型优先级</label>
-              <select class="form-control" id="paper-literature-type">
-                <option value="core">核心期刊优先</option>
-                <option value="all">不限类型</option>
-                <option value="dissertation">学位论文优先</option>
-              </select>
-            </div>
-            <div class="btn-row">
-              <button class="btn btn-secondary" onclick="prevStep('paper')">&#8592; 上一步</button>
-              <button class="btn btn-primary" onclick="nextStep('paper')">下一步 &#8594;</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Paper Step 5: Paper Collection & Organization -->
-        <div class="step-content" id="paper-step-5">
-          <div class="panel">
-            <div class="panel-header">
-              <div>
-                <h2>论文搜集与整理</h2>
-                <p>管理文献资料，构建个人论文库，为写作积累素材</p>
-              </div>
-            </div>
-
-            <!-- Tab bar for sub-sections -->
-            <div class="tab-bar" id="paper-collect-tabs">
-              <div class="tab-item active" onclick="switchPaperTab('collect')">&#128194; 论文库管理</div>
-              <div class="tab-item" onclick="switchPaperTab('folder')">&#128193; 关联资料文件夹</div>
-              <div class="tab-item" onclick="switchPaperTab('excel')">&#128202; Excel导入</div>
-              <div class="tab-item" onclick="switchPaperTab('output')">&#128202; 资料输出设置</div>
-            </div>
-
-            <!-- Tab: Paper Collection -->
-            <div class="paper-tab-content active" id="paper-tab-collect">
-              <div class="info-block">
-                <p>在这里搜集和整理论文。添加的论文将自动保存，并在最终AI写作时作为参考上下文。支持手动添加、批量导入和标签分类。</p>
-              </div>
-
-              <!-- Add Paper Form -->
-              <div class="summary-box" style="margin-bottom:1rem;">
-                <h5 style="margin-bottom:0.75rem;">&#10133; 添加论文</h5>
-                <div class="form-group" style="margin-bottom:0.75rem;">
-                  <label style="font-size:0.8rem;">论文标题 <span class="hint">*</span></label>
-                  <input class="form-control" id="paper-add-title" placeholder="例如：数字技术对纪录片叙事美学的影响研究">
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
-                  <div class="form-group" style="margin-bottom:0.75rem;">
-                    <label style="font-size:0.8rem;">作者</label>
-                    <input class="form-control" id="paper-add-author" placeholder="例如：张三">
-                  </div>
-                  <div class="form-group" style="margin-bottom:0.75rem;">
-                    <label style="font-size:0.8rem;">发表年份</label>
-                    <input class="form-control" id="paper-add-year" placeholder="例如：2024">
-                  </div>
-                </div>
-                <div class="form-group" style="margin-bottom:0.75rem;">
-                  <label style="font-size:0.8rem;">来源/期刊</label>
-                  <input class="form-control" id="paper-add-source" placeholder="例如：《电影艺术》">
-                </div>
-                <div class="form-group" style="margin-bottom:0.75rem;">
-                  <label style="font-size:0.8rem;">链接/DOI</label>
-                  <input class="form-control" id="paper-add-link" placeholder="https://...">
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
-                  <div class="form-group" style="margin-bottom:0.75rem;">
-                    <label style="font-size:0.8rem;">标签 <span class="hint">用逗号分隔</span></label>
-                    <input class="form-control" id="paper-add-tags" placeholder="纪录片, 叙事学, 数字技术">
-                  </div>
-                  <div class="form-group" style="margin-bottom:0.75rem;">
-                    <label style="font-size:0.8rem;">重要度</label>
-                    <select class="form-control" id="paper-add-priority">
-                      <option value="high">&#11088; 核心文献</option>
-                      <option value="medium" selected>重要文献</option>
-                      <option value="low">参考文献</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="form-group" style="margin-bottom:0.75rem;">
-                  <label style="font-size:0.8rem;">摘要/核心观点</label>
-                  <textarea class="form-control" id="paper-add-abstract" rows="2" placeholder="简要概括论文的核心观点和方法..."></textarea>
-                </div>
-                <div class="form-group" style="margin-bottom:0.5rem;">
-                  <label style="font-size:0.8rem;">个人笔记 <span class="hint">对本论文的思考、可引用的论点</span></label>
-                  <textarea class="form-control" id="paper-add-notes" rows="2" placeholder="记录对本论文的思考、可用于自己论文的论点..."></textarea>
-                </div>
-                <div class="btn-row" style="margin-top:0.75rem;">
-                  <button class="btn btn-sm btn-secondary" onclick="clearPaperForm()">清空</button>
-                  <button class="btn btn-sm btn-success" onclick="addPaperToLibrary()">&#10133; 添加到论文库</button>
-                </div>
-              </div>
-
-              <!-- Bulk Import -->
-              <div class="info-block tip" style="margin-bottom:1rem;">
-                <p><strong>批量导入：</strong>您也可以直接粘贴参考文献列表，系统将尝试自动解析并添加。</p>
-              </div>
-              <div class="form-group">
-                <textarea class="form-control" id="paper-bulk-import" rows="3" placeholder="粘贴参考文献列表，每行一篇，格式如：&#10;张三. 数字技术对纪录片叙事美学的影响研究[J]. 电影艺术, 2024(3): 45-52.&#10;Li, W. Digital Documentary Aesthetics[J]. Screen, 2023, 64(2): 112-130."></textarea>
-              </div>
-              <div class="btn-row" style="margin-bottom:1.5rem;">
-                <button class="btn btn-sm btn-secondary" onclick="bulkImportPapers()">&#128229; 批量导入</button>
-              </div>
-
-              <!-- Filter & Stats -->
-              <div class="flex-between" style="margin-bottom:0.75rem;">
-                <div class="panel-subtitle" style="margin:0;">&#128218; 我的论文库</div>
-                <div style="font-size:0.8rem;color:var(--muted);">
-                  共 <strong id="paper-count-total" style="color:var(--accent);">0</strong> 篇
-                  <span style="margin-left:0.5rem;">核心 <strong id="paper-count-high" style="color:var(--success);">0</strong></span>
-                </div>
-              </div>
-              <div class="form-group" style="margin-bottom:0.75rem;">
-                <input class="form-control" id="paper-filter" placeholder="&#128269; 搜索论文标题、作者、标签..." oninput="renderPaperLibrary()">
-              </div>
-
-              <!-- Paper List -->
-              <div id="paper-library-list" style="max-height:400px;overflow-y:auto;">
-                <div class="info-block" style="text-align:center;border-left-color:var(--muted);">
-                  <p>论文库为空。请在上方添加论文，或使用批量导入功能。</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tab: Folder Link -->
-            <div class="paper-tab-content" id="paper-tab-folder" style="display:none;">
-              <div class="info-block">
-                <p><strong>关联电脑资料文件夹</strong></p>
-                <p>选择您电脑中保存论文写作资料的文件夹。关联后，系统会读取文件夹内的文献列表，在后续AI写作时严格参考这些资料。</p>
-              </div>
-              <div class="form-group">
-                <label>资料文件夹路径</label>
-                <div style="display:flex;">
-                  <input class="form-control" id="paper-folder-path" placeholder="点击右侧按钮选择文件夹" readonly>
-                  <button class="btn btn-sm btn-secondary" onclick="pickReferenceFolder()" style="margin-left:0.5rem;white-space:nowrap;">&#128193; 选择文件夹</button>
-                </div>
-              </div>
-              <div class="form-group">
-                <label>资料文件类型筛选 <span class="hint">选择要包含的文件类型</span></label>
-                <div class="checkbox-group" id="paper-filetype-group">
-                  <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>PDF (.pdf)</div>
-                  <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>Word (.doc/.docx)</div>
-                  <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>文本 (.txt)</div>
-                  <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>Markdown (.md)</div>
-                  <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>Excel (.xls/.xlsx)</div>
-                  <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>其他全部</div>
-                </div>
-              </div>
-              <div class="form-group">
-                <button class="btn btn-sm btn-primary" onclick="scanReferenceFolder()">&#128270; 扫描文件夹内容</button>
-                <button class="btn btn-sm btn-secondary" onclick="clearReferenceFolder()" style="margin-left:0.5rem;">&#10006; 清除关联</button>
-              </div>
-              <div id="folder-scan-result" style="display:none;"></div>
-              <div class="info-block tip">
-                <p><strong>说明：</strong>由于浏览器安全限制，网页无法直接读取文件内容。系统会提取文件名列表，在AI写作时将文件名作为参考资料清单发送给AI，让AI严格参考这些文献名称进行写作。建议文件命名包含作者和标题信息，如"张三-数字技术与纪录片叙事-2024.pdf"。</p>
-              </div>
-            </div>
-
-            <!-- Tab: Excel Import -->
-            <div class="paper-tab-content" id="paper-tab-excel" style="display:none;">
-              <div class="info-block">
-                <p><strong>上传Excel论文文献表格</strong></p>
-                <p>上传您整理好的Excel论文文献表格，系统会自动读取识别表格内容，将论文信息归类整理后导入到论文库中。</p>
-              </div>
-              <div class="form-group">
-                <label>选择Excel文件</label>
-                <div style="display:flex;align-items:center;gap:0.5rem;">
-                  <input type="file" id="excel-file-input" accept=".xlsx,.xls,.csv" style="display:none;" onchange="handleExcelUpload(event)">
-                  <input class="form-control" id="excel-file-name" placeholder="点击右侧按钮选择Excel文件" readonly>
-                  <button class="btn btn-sm btn-secondary" onclick="document.getElementById('excel-file-input').click()" style="white-space:nowrap;">&#128196; 选择文件</button>
-                </div>
-              </div>
-              <div class="form-group">
-                <label>表格列映射说明 <span class="hint">系统会自动识别以下列名</span></label>
-                <div class="info-block tip" style="margin-bottom:0;">
-                  <p style="margin:0.25rem 0;">系统会自动识别这些列名（不区分大小写）：</p>
-                  <p style="margin:0.25rem 0;">标题：标题/题目/论文标题/title</p>
-                  <p style="margin:0.25rem 0;">作者：作者/著者/author</p>
-                  <p style="margin:0.25rem 0;">年份：年份/发表年份/year</p>
-                  <p style="margin:0.25rem 0;">来源：来源/期刊/刊物/source/journal</p>
-                  <p style="margin:0.25rem 0;">链接：链接/DOI/link/doi</p>
-                  <p style="margin:0.25rem 0;">标签：标签/分类/tags/category</p>
-                  <p style="margin:0.25rem 0;">摘要：摘要/核心观点/abstract</p>
-                  <p style="margin:0.25rem 0;">笔记：笔记/备注/notes</p>
-                </div>
-              </div>
-              <div class="form-group">
-                <button class="btn btn-sm btn-primary" onclick="parseExcelFile()">&#128229; 解析并导入</button>
-                <button class="btn btn-sm btn-secondary" onclick="clearExcelUpload()" style="margin-left:0.5rem;">&#10006; 清除</button>
-              </div>
-              <div id="excel-parse-result" style="display:none;"></div>
-              <div class="info-block tip">
-                <p>支持 .xlsx、.xls、.csv 格式。建议第一行为表头行。解析后可预览数据并一键导入论文库。</p>
-              </div>
-            </div>
-
-            <!-- Tab: Output Settings -->
-            <div class="paper-tab-content" id="paper-tab-output" style="display:none;">
-              <div class="form-group">
-                  <label>资料保存路径</label>
-                  <div style="display:flex;">
-                    <input class="form-control" id="paper-save-path" placeholder="点击右侧按钮选择文件夹" readonly>
-                    <button class="btn btn-sm btn-secondary" onclick="pickFolder('paper-save-path')" style="margin-left:0.5rem;white-space:nowrap;">&#128193; 选择</button>
-                  </div>
-                </div>
-              <div class="form-group">
-                <label>资料分类体系</label>
-                <div class="checkbox-group" id="paper-category-group">
-                  <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>中文核心期刊</div>
-                  <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>外文核心期刊</div>
-                  <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>普通期刊</div>
-                  <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>学位论文</div>
-                  <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>会议论文</div>
-                  <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>影视作品案例</div>
-                  <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>行业报告</div>
-                </div>
-              </div>
-              <div class="form-group">
-                <label>期望输出物</label>
-                <div class="checkbox-group" id="paper-output-group">
-                  <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>Excel资料总表</div>
-                  <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>选题规划文档</div>
-                  <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>参考文献格式整理</div>
-                  <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>文献综述框架</div>
-                  <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>论文章节结构</div>
-                  <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>README说明文档</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="btn-row">
-              <button class="btn btn-secondary" onclick="prevStep('paper')">&#8592; 上一步</button>
-              <button class="btn btn-primary" onclick="nextStep('paper')">下一步 &#8594;</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Paper Step 6 -->
-        <div class="step-content" id="paper-step-6">
-          <div class="panel">
-            <div class="panel-header">
-              <div>
-                <h2>写作框架与辅助</h2>
-                <p>配置写作辅助功能</p>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>需要的写作辅助</label>
-              <div class="checkbox-group" id="paper-writing-group">
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>论文题目优化</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>摘要撰写方向</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>引言写作思路</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>文献综述框架</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>理论框架建议</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>章节结构设计</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>作品分析表</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>资料缺口提示</div>
-              </div>
-            </div>
-            <div class="btn-row">
-              <button class="btn btn-secondary" onclick="prevStep('paper')">&#8592; 上一步</button>
-              <button class="btn btn-primary" onclick="nextStep('paper')">下一步 &#8594;</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Paper Step 7: AI Writing -->
-        <div class="step-content" id="paper-step-7">
-          <div class="panel">
-            <div class="panel-header">
-              <div>
-                <h2>AI写作执行</h2>
-                <p>确认配置，一键调用大模型完成写作，直接下载结果</p>
-              </div>
-            </div>
-            <div class="summary-box" id="paper-summary">
-              <h5>配置摘要</h5>
-              <div class="summary-items" id="paper-summary-items"></div>
-            </div>
-
-            <div class="panel-subtitle">写作提示词 <span class="text-muted text-xs">可编辑</span></div>
-            <div class="prompt-output" id="paper-prompt-output">
-              <pre id="paper-prompt-text" contenteditable="true" style="min-height:120px;outline:none;" oninput="window.editedPrompts=window.editedPrompts||{};window.editedPrompts['paper']=this.innerText"></pre>
-            </div>
-            <div class="btn-row mt-1">
-              <button class="btn btn-sm btn-secondary" onclick="copyPrompt('paper')">&#128203; 复制提示词</button>
-              <button class="btn btn-sm btn-secondary" onclick="generatePrompt('paper')">&#8635; 重新生成</button>
-            </div>
-
-            <div class="divider"></div>
-
-            <!-- AI Outline Generation Section -->
-            <div class="panel-subtitle">论文大纲生成 <span class="text-muted text-xs">写作前先生成大纲</span></div>
-            <div class="info-block tip" style="margin-bottom:0.75rem;">
-              <p style="margin:0;">在开始正式写作之前，建议先生成论文大纲。您可以反复生成直到满意，也可以手动编辑修改。</p>
-            </div>
-            <div class="btn-row" style="margin-bottom:0.75rem;">
-              <button class="btn btn-sm btn-primary" id="paper-gen-outline-btn" onclick="generatePaperOutline()">&#128221; 生成论文大纲</button>
-              <button class="btn btn-sm btn-secondary" onclick="openOutlineView()">&#128193; 打开全屏大纲视图</button>
-              <span id="paper-outline-status" style="font-size:0.8rem;color:var(--muted);"></span>
-            </div>
-            <div id="paper-outline-result" style="display:none;">
-              <div class="summary-box" style="margin-bottom:0.75rem;">
-                <div class="flex-between" style="margin-bottom:0.5rem;">
-                  <h5 style="margin:0;">论文大纲</h5>
-                  <div style="display:flex;gap:0.5rem;">
-                    <button class="btn btn-sm btn-secondary" onclick="generatePaperOutline()">&#8635; 重新生成</button>
-                    <button class="btn btn-sm btn-secondary" onclick="openOutlineView()">&#128193; 全屏编辑</button>
-                  </div>
-                </div>
-                <div id="paper-outline-content" contenteditable="true" style="min-height:200px;max-height:400px;overflow-y:auto;background:var(--bg);border:1px solid var(--rule);border-radius:6px;padding:1rem;font-size:0.88rem;line-height:1.8;outline:none;white-space:pre-wrap;"></div>
-                <div class="btn-row" style="margin-top:0.75rem;">
-                  <button class="btn btn-sm btn-success" onclick="confirmPaperOutline()">&#10003; 满意，确认大纲</button>
-                  <span id="paper-outline-confirm-status" style="font-size:0.8rem;color:var(--muted);margin-left:0.5rem;">确认后大纲将作为写作指导</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="api-status-bar" id="paper-api-status">
-              <span class="api-status-dot" id="paper-api-dot"></span>
-              <span class="api-status-text" id="paper-api-text">请先配置API</span>
-              <button class="btn btn-sm btn-secondary" onclick="toggleApiDrawer()">&#9881; 配置API</button>
-            </div>
-
-            <div class="btn-row mt-2" id="paper-action-row">
-              <button class="btn btn-secondary" onclick="prevStep('paper')">&#8592; 上一步</button>
-              <button class="btn btn-success" id="paper-run-btn" onclick="startAiWriting('paper')">&#9889; 开始AI写作</button>
-            </div>
-
-            <div class="writing-progress" id="paper-writing-progress" style="display:none;">
-              <div class="flex-between text-xs text-muted">
-                <span id="paper-writing-status">正在连接...</span>
-                <button class="btn btn-sm btn-secondary" onclick="stopAiWriting('paper')">停止</button>
-              </div>
-            </div>
-
-            <div class="result-area" id="paper-result-area" style="display:none;">
-              <div class="info-block success">
-                <p>&#10003; AI写作完成！共 <strong id="paper-word-count">0</strong> 字。点击下方按钮打开全屏编辑器查看、编辑和下载。</p>
-              </div>
-              <div class="btn-row mt-2">
-                <button class="btn btn-primary" onclick="openFullWritingView('paper')">&#128193; 打开全屏写作视图</button>
-                <button class="btn btn-secondary" onclick="downloadMd('paper')">&#128190; 下载 .md</button>
-                <button class="btn btn-secondary" onclick="downloadDoc('paper')">&#128190; 下载 .doc</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================== MODULE: MUSIC ==================== -->
-  <div class="page-view" id="page-music">
-    <a class="back-link" onclick="showPage('home')">&#8592; 返回工作台首页</a>
-    <div class="breadcrumb-bar" style="padding:0 0 1rem;">
-      <div class="breadcrumb">
-        <a onclick="showPage('home')">首页</a>
-        <span class="sep">/</span>
-        <span class="current">音乐学论文写作助手</span>
-      </div>
-    </div>
-
-    <div class="workspace">
-      <aside class="sidebar">
-        <h4>操作步骤</h4>
-        <ul class="step-list" id="music-steps">
-          <li class="active" data-step="1" onclick="goToStep('music',1)"><span class="step-num">1</span>确定研究方向</li>
-          <li data-step="2" onclick="goToStep('music',2)"><span class="step-num">2</span>选题规划</li>
-          <li data-step="3" onclick="goToStep('music',3)"><span class="step-num">3</span>文献检索策略</li>
-          <li data-step="4" onclick="goToStep('music',4)"><span class="step-num">4</span>特色资料配置</li>
-          <li data-step="5" onclick="goToStep('music',5)"><span class="step-num">5</span>资料管理与输出</li>
-          <li data-step="6" onclick="goToStep('music',6)"><span class="step-num">6</span>写作辅助</li>
-          <li data-step="7" onclick="goToStep('music',7)"><span class="step-num">7</span>生成AI提示词</li>
-        </ul>
-      </aside>
-
-      <div class="workspace-main">
-        <div class="progress-text">
-          <span>步骤进度</span>
-          <span id="music-progress-label">1 / 7</span>
-        </div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-fill" id="music-progress" style="width:14.3%"></div>
-        </div>
-
-        <!-- Music Step 1 -->
-        <div class="step-content active" id="music-step-1">
-          <div class="panel">
-            <div class="panel-header">
-              <div>
-                <h2>确定研究方向</h2>
-                <p>选择音乐学研究板块，输入研究兴趣</p>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>音乐学研究板块 <span class="hint">可多选</span></label>
-              <div class="checkbox-group" id="music-field-group">
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>中国音乐史</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>西方音乐史</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>民族音乐学</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>中国传统音乐</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>音乐美学</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>作曲技术理论</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>音乐表演研究</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>音乐教育</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>流行音乐研究</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>音乐传播与产业</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>技术与数字音乐</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>跨学科研究</div>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>具体研究方向 / 补充说明</label>
-              <textarea class="form-control" id="music-note" placeholder="例如：我对德彪西钢琴作品中的印象主义和声技法感兴趣，特别是《月光》和《亚麻色头发的少女》..."></textarea>
-            </div>
-            <div class="btn-row btn-row-end">
-              <button class="btn btn-primary" onclick="nextStep('music')">下一步 &#8594;</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Music Step 2 -->
-        <div class="step-content" id="music-step-2">
-          <div class="panel">
-            <div class="panel-header">
-              <div>
-                <h2>选题规划</h2>
-                <p>选择选题偏好和目标成果</p>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>选题偏好</label>
-              <div class="checkbox-group">
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>作品分析导向</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>历史文献考证</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>民族志/田野调查</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>表演实践研究</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>美学与批评</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>教育实践</div>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>目标成果类型</label>
-              <select class="form-control" id="music-type">
-                <option value="">请选择</option>
-                <option value="journal">期刊论文</option>
-                <option value="degree">学位论文（本科）</option>
-                <option value="degree-master">学位论文（硕士）</option>
-              </select>
-            </div>
-            <div class="btn-row">
-              <button class="btn btn-secondary" onclick="prevStep('music')">&#8592; 上一步</button>
-              <button class="btn btn-primary" onclick="nextStep('music')">下一步 &#8594;</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Music Step 3 -->
-        <div class="step-content" id="music-step-3">
-          <div class="panel">
-            <div class="panel-header">
-              <div>
-                <h2>文献检索策略</h2>
-                <p>音乐学特有的文献来源配置</p>
-              </div>
-            </div>
-            <div class="info-block">
-              <p><strong>音乐学特色：</strong>除常规学术数据库外，还支持 RILM Abstracts、Grove Music Online (Oxford) 等音乐学专业数据库检索。</p>
-            </div>
-            <div class="form-group">
-              <label>文献语言偏好</label>
-              <div class="option-grid" style="grid-template-columns: repeat(3,1fr);">
-                <div class="option-card" onclick="selectOption(this,'music-lang')" data-value="cn"><div class="oc-title">以中文为主</div></div>
-                <div class="option-card" onclick="selectOption(this,'music-lang')" data-value="en"><div class="oc-title">以英文为主</div></div>
-                <div class="option-card" onclick="selectOption(this,'music-lang')" data-value="both"><div class="oc-title">中英文并重</div></div>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>音乐学专业数据库</label>
-              <div class="checkbox-group">
-                <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>RILM Abstracts</div>
-                <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>Grove Music Online</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>IMSLP (乐谱)</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>Naxos Music Library</div>
-              </div>
-            </div>
-            <div class="btn-row">
-              <button class="btn btn-secondary" onclick="prevStep('music')">&#8592; 上一步</button>
-              <button class="btn btn-primary" onclick="nextStep('music')">下一步 &#8594;</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Music Step 4 -->
-        <div class="step-content" id="music-step-4">
-          <div class="panel">
-            <div class="panel-header">
-              <div>
-                <h2>特色资料配置</h2>
-                <p>音乐学特有的资料类型管理</p>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>需要整理的特色资料</label>
-              <div class="checkbox-group" id="music-special-group">
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>乐谱（公版）</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>音频/视频资料</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>唱片/录音资料</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>田野调查记录</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>访谈/口述史</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>演出节目单</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>档案资料</div>
-              </div>
-            </div>
-            <div class="info-block tip">
-              <p><strong>版权提醒：</strong>仅下载公版乐谱和开放授权音视频，受版权保护资料仅记录题录信息和链接。</p>
-            </div>
-            <div class="btn-row">
-              <button class="btn btn-secondary" onclick="prevStep('music')">&#8592; 上一步</button>
-              <button class="btn btn-primary" onclick="nextStep('music')">下一步 &#8594;</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Music Step 5 -->
-        <div class="step-content" id="music-step-5">
-          <div class="panel">
-            <div class="panel-header">
-              <div>
-                <h2>资料管理与输出</h2>
-                <p>Excel资料总表包含11个工作表</p>
-              </div>
-            </div>
-            <div class="form-group">
-                <label>资料保存路径</label>
-                <div style="display:flex;">
-                  <input class="form-control" id="music-save-path" placeholder="点击右侧按钮选择文件夹" readonly>
-                  <button class="btn btn-sm btn-secondary" onclick="pickFolder('music-save-path')" style="margin-left:0.5rem;white-space:nowrap;">&#128193; 选择</button>
-                </div>
-              </div>
-            <div class="form-group">
-              <label>期望输出物</label>
-              <div class="checkbox-group">
-                <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>Excel资料总表（11个工作表）</div>
-                <div class="checkbox-item selected" onclick="toggleCheck(this)"><span class="check-icon">&#10003;</span>选题规划文档</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>参考文献格式整理</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>音乐作品分析表</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>版本比较表</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>表演阐释表</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>田野资料分析表</div>
-              </div>
-            </div>
-            <div class="btn-row">
-              <button class="btn btn-secondary" onclick="prevStep('music')">&#8592; 上一步</button>
-              <button class="btn btn-primary" onclick="nextStep('music')">下一步 &#8594;</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Music Step 6 -->
-        <div class="step-content" id="music-step-6">
-          <div class="panel">
-            <div class="panel-header">
-              <div>
-                <h2>写作辅助</h2>
-                <p>音乐学论文的写作辅助选项</p>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>需要的写作辅助</label>
-              <div class="checkbox-group">
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>论文题目优化</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>摘要撰写方向</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>文献综述框架</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>理论框架建议</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>章节结构设计</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>音乐作品分析指导</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>版本比较框架</div>
-                <div class="checkbox-item" onclick="toggleCheck(this)"><span class="check-icon"></span>田野调查分析框架</div>
-              </div>
-            </div>
-            <div class="btn-row">
-              <button class="btn btn-secondary" onclick="prevStep('music')">&#8592; 上一步</button>
-              <button class="btn btn-primary" onclick="nextStep('music')">下一步 &#8594;</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Music Step 7: AI Writing -->
-        <div class="step-content" id="music-step-7">
-          <div class="panel">
-            <div class="panel-header">
-              <div>
-                <h2>AI写作执行</h2>
-                <p>确认配置，一键调用大模型完成写作，直接下载结果</p>
-              </div>
-            </div>
-            <div class="summary-box" id="music-summary">
-              <h5>配置摘要</h5>
-              <div class="summary-items" id="music-summary-items"></div>
-            </div>
-
-            <div class="panel-subtitle">写作提示词 <span class="text-muted text-xs">可编辑</span></div>
-            <div class="prompt-output" id="music-prompt-output">
-              <pre id="music-prompt-text" contenteditable="true" style="min-height:120px;outline:none;" oninput="window.editedPrompts=window.editedPrompts||{};window.editedPrompts['music']=this.innerText"></pre>
-            </div>
-            <div class="btn-row mt-1">
-              <button class="btn btn-sm btn-secondary" onclick="copyPrompt('music')">&#128203; 复制提示词</button>
-              <button class="btn btn-sm btn-secondary" onclick="generatePrompt('music')">&#8635; 重新生成</button>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="api-status-bar" id="music-api-status">
-              <span class="api-status-dot" id="music-api-dot"></span>
-              <span class="api-status-text" id="music-api-text">请先配置API</span>
-              <button class="btn btn-sm btn-secondary" onclick="toggleApiDrawer()">&#9881; 配置API</button>
-            </div>
-
-            <div class="btn-row mt-2" id="music-action-row">
-              <button class="btn btn-secondary" onclick="prevStep('music')">&#8592; 上一步</button>
-              <button class="btn btn-success" id="music-run-btn" onclick="startAiWriting('music')">&#9889; 开始AI写作</button>
-            </div>
-
-            <div class="writing-progress" id="music-writing-progress" style="display:none;">
-              <div class="flex-between text-xs text-muted">
-                <span id="music-writing-status">正在连接...</span>
-                <button class="btn btn-sm btn-secondary" onclick="stopAiWriting('music')">停止</button>
-              </div>
-            </div>
-
-            <div class="result-area" id="music-result-area" style="display:none;">
-              <div class="info-block success">
-                <p>&#10003; AI写作完成！共 <strong id="music-word-count">0</strong> 字。点击下方按钮打开全屏编辑器查看、编辑和下载。</p>
-              </div>
-              <div class="btn-row mt-2">
-                <button class="btn btn-primary" onclick="openFullWritingView('music')">&#128193; 打开全屏写作视图</button>
-                <button class="btn btn-secondary" onclick="downloadMd('music')">&#128190; 下载 .md</button>
-                <button class="btn btn-secondary" onclick="downloadDoc('music')">&#128190; 下载 .doc</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- ==================== MODULE: GRADE ==================== -->
 
   <!-- ==================== SCREENWRITING PAGE ==================== -->
@@ -3228,6 +2467,9 @@
                 </button>
                 <button class="btn btn-sm btn-secondary" onclick="document.getElementById('sw-diag-file-multi').click()" style="flex:1; min-width:140px; justify-content:center;">
                   &#128194; 上传多个文档
+                </button>
+                <button class="btn btn-sm desktop-folder-btn" onclick="swDesktopSelectFolder()" style="flex:1; min-width:140px; justify-content:center; background:rgba(var(--accent-rgb),0.1); border-color:rgba(var(--accent-rgb),0.3); color:var(--accent);">
+                  &#128193; 选择文件夹
                 </button>
                 <button class="btn btn-sm" onclick="swClearDiagFiles()" style="padding:0.4rem 0.7rem; font-size:0.78rem;">
                   &#128465; 清空
@@ -6427,8 +5669,9 @@
   // ===== State Management =====
   const state = {
     currentModule: null,
-    currentStep: { paper: 1, music: 1, grade: 1, textbook: 1, lesson: 1, exam: 1, polish: 1, correct: 1, book: 1, format: 1, research: 1, fund: 1, competition: 1, screenwriting: 1 },
-    totalSteps: { paper: 7, music: 7, grade: 6, textbook: 7, lesson: 7, exam: 6, polish: 5, correct: 6, book: 7, format: 6, research: 7, fund: 7, competition: 6, screenwriting: 4 },
+    desktopCategory: null,
+    currentStep: { grade: 1, textbook: 1, lesson: 1, exam: 1, polish: 1, correct: 1, book: 1, format: 1, research: 1, fund: 1, competition: 1, screenwriting: 1 },
+    totalSteps: { grade: 6, textbook: 7, lesson: 7, exam: 6, polish: 5, correct: 6, book: 7, format: 6, research: 7, fund: 7, competition: 6, screenwriting: 4 },
     selections: {}
   };
 
@@ -6437,6 +5680,21 @@
     document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
     document.getElementById('page-' + page).classList.add('active');
     if (page === 'home') state.currentModule = null;
+    // 同步桌面端三级菜单高亮
+    if (document.body.classList.contains('desktop-mode')) {
+      var _cat = desktopFindCategory(page);
+      document.querySelectorAll('#desktop-rail .rail-item').forEach(function(el) {
+        el.classList.toggle('active', el.dataset.cat === _cat);
+      });
+      if (state.desktopCategory !== _cat) {
+        state.desktopCategory = _cat;
+        buildDesktopSubrail(_cat, page);
+      } else {
+        document.querySelectorAll('#desktop-subrail .subrail-item').forEach(function(el) {
+          el.classList.toggle('active', el.dataset.mod === page);
+        });
+      }
+    }
     // Initialize AI help buttons for module pages
     if (page !== 'home') {
       setTimeout(function() { initAiHelpForModule(page); }, 150);
@@ -11498,9 +10756,9 @@
     }
 
     updateAllApiStatus();
-    renderPaperLibrary();
+    if (document.getElementById('paper-filter')) renderPaperLibrary();
     // Restore reference folder
-    loadRefFolderFiles();
+    if (document.getElementById('paper-folder-path')) loadRefFolderFiles();
     initCheckboxGroups();
   });
 
@@ -11924,6 +11182,180 @@ P0致命问题 → P1重要问题 → P2建议优化
     swDiagFiles.splice(idx, 1);
     swRenderFileList();
     if (!swDiagFiles.length) document.getElementById('screenwriting-run-btn').disabled = true;
+  }
+
+  // ===== 桌面端文件夹选择功能 =====
+  async function swDesktopSelectFolder() {
+    if (!window.desktopAPI) {
+      showToast('此功能仅在桌面应用中可用', 'info');
+      return;
+    }
+    var folderPath = await desktopAPI.selectFolder();
+    if (!folderPath) return;
+    
+    var result = await desktopAPI.readFolderFiles(folderPath);
+    if (!result.success || !result.files.length) {
+      showToast('未在文件夹中找到支持的文档文件', 'info');
+      return;
+    }
+    
+    var loaded = 0;
+    for (var i = 0; i < result.files.length; i++) {
+      var f = result.files[i];
+      if (f.success && f.text && f.text.trim().length > 20) {
+        swDiagFiles.push({
+          name: f.name,
+          text: f.text.trim(),
+          type: swDetectDocType(f.name)
+        });
+        loaded++;
+      }
+    }
+    
+    swRenderFileList();
+    showToast('已从文件夹加载 ' + loaded + ' 个文档', 'success');
+  }
+
+
+  // ===== 桌面端三级菜单数据与逻辑 =====
+  // 一级菜单（分类）
+  var desktopCategories = {
+    home: { name: '首页', icon: '🏠', mods: [] },
+    writing: { name: '论文写作', icon: '📝', mods: ['paper', 'music', 'polish'] },
+    teaching: { name: '教学工具', icon: '🎓', mods: ['lesson', 'exam', 'textbook', 'book', 'format', 'research', 'fund'] },
+    grading: { name: '作业批改', icon: '✅', mods: ['grade', 'correct'] },
+    competition: { name: '竞赛策划', icon: '🏆', mods: ['competition'] },
+    screenwriting: { name: '编剧课程', icon: '🎬', mods: ['screenwriting'] }
+  };
+
+  // 二级菜单（模块）
+  var desktopModules = {
+    home: { name: '首页', icon: '🏠', cat: 'home' },
+    polish: { name: '文本润色降重助手', icon: '✨', cat: '科研辅助' },
+    lesson: { name: '智能教案生成助手', icon: '📋', cat: 'teaching' },
+    exam: { name: '智能试题生成助手', icon: '📝', cat: 'teaching' },
+    textbook: { name: 'AIGC影视教材写作助手', icon: '📚', cat: 'teaching' },
+    book: { name: '通用大学本科教材写作助手', icon: '📕', cat: 'teaching' },
+    format: { name: '文章格式自动调整助手', icon: '🎨', cat: 'teaching' },
+    research: { name: '教研项目申报书助手', icon: '🔬', cat: '科研辅助' },
+    fund: { name: '基金项目申报助手', icon: '💰', cat: '科研辅助' },
+    grade: { name: '影视作品分析作业批改', icon: '✅', cat: 'grading' },
+    correct: { name: '智能作业批改助手', icon: '📊', cat: 'grading' },
+    competition: { name: '学科竞赛文案策划', icon: '🏆', cat: 'competition' },
+    screenwriting: { name: '丁老师的数字分身', icon: '🎬', cat: 'screenwriting' }
+  };
+
+  // 根据模块key查找所属一级分类
+  function desktopFindCategory(mod) {
+    if (mod === 'home') return 'home';
+    for (var c in desktopCategories) {
+      if (desktopCategories[c].mods && desktopCategories[c].mods.indexOf(mod) > -1) return c;
+    }
+    return 'home';
+  }
+
+  // 一级菜单点击：更新一级高亮 + 刷新二级菜单 + 加载三级界面
+  function desktopNavCategory(cat) {
+    var category = desktopCategories[cat];
+    if (!category) return;
+    if (cat === 'home') {
+      desktopSelect('home', 'home');
+    } else {
+      // 自动选中该分类下第一个模块，展示三级操作界面
+      var firstMod = category.mods[0];
+      desktopSelect(cat, firstMod);
+    }
+  }
+
+  // 二级菜单点击：同步一级高亮 + 更新二级高亮 + 加载三级操作界面
+  function desktopNavModule(mod) {
+    var cat = desktopFindCategory(mod);
+    desktopSelect(cat, mod);
+  }
+
+  // 统一设置三级菜单选中状态
+  function desktopSelect(cat, mod) {
+    state.desktopCategory = cat;
+    // 一级菜单高亮
+    document.querySelectorAll('#desktop-rail .rail-item').forEach(function(el) {
+      el.classList.toggle('active', el.dataset.cat === cat);
+    });
+    // 二级菜单重建 + 高亮
+    buildDesktopSubrail(cat, mod);
+    // 三级操作界面
+    if (!mod || mod === 'home') {
+      showPage('home');
+    } else {
+      enterModule(mod);
+    }
+  }
+
+  // 构建二级菜单（根据一级分类动态渲染）
+  function buildDesktopSubrail(cat, activeMod) {
+    var container = document.getElementById('desktop-subrail-content');
+    if (!container) return;
+    cat = cat || 'home';
+    activeMod = activeMod || (cat === 'home' ? 'home' : '');
+    var category = desktopCategories[cat];
+    if (!category) return;
+    var html = '';
+    html += '<div class="subrail-section">';
+    html += '<div class="subrail-section-title">' + category.name + '</div>';
+    if (cat === 'home') {
+      html += '<div class="subrail-item' + (activeMod === 'home' ? ' active' : '') + '" data-mod="home" onclick="desktopNavModule(\'home\')">';
+      html += '<span class="subrail-icon">🏠</span>首页欢迎';
+      html += '</div>';
+    } else {
+      category.mods.forEach(function(key) {
+        var mod = desktopModules[key];
+        if (!mod) return;
+        html += '<div class="subrail-item' + (activeMod === key ? ' active' : '') + '" data-mod="' + key + '" onclick="desktopNavModule(\'' + key + '\')">';
+        html += '<span class="subrail-icon">' + mod.icon + '</span>' + mod.name;
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+    // 底部功能按钮
+    html += '<div id="desktop-subrail-footer">';
+    html += '<button onclick="toggleApiDrawer()">⚙ API设置</button>';
+    html += '<button onclick="resetCurrentModule()">↻ 重置当前模块</button>';
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  // 桌面端初始化
+  async function initDesktopMode() {
+    if (!window.desktopAPI) { console.log('[Desktop] desktopAPI not found'); return; }
+    var isDesktop = await desktopAPI.isDesktop();
+    console.log('[Desktop] isDesktop:', isDesktop);
+    if (isDesktop) {
+      document.body.classList.add('desktop-mode');
+      document.getElementById('desktop-titlebar').style.display = 'block';
+      document.getElementById('desktop-rail').style.display = 'block';
+      document.getElementById('desktop-subrail').style.display = 'flex';
+      document.getElementById('desktop-subrail').style.flexDirection = 'column';
+      state.desktopCategory = 'home';
+      buildDesktopSubrail('home', 'home');
+      console.log('[Desktop] Desktop mode activated');
+    }
+  }
+
+  // 页面加载时检测桌面环境（兼容 Electron 加载时序）
+  function tryInitDesktop() {
+    if (window.desktopAPI) {
+      console.log('[Desktop] desktopAPI found, initializing...');
+      initDesktopMode();
+    } else {
+      console.log('[Desktop] desktopAPI not available (browser mode)');
+    }
+  }
+  if (typeof window !== 'undefined') {
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', tryInitDesktop);
+    } else {
+      // DOMContentLoaded already fired (common in Electron)
+      tryInitDesktop();
+    }
   }
 
   function swClearDiagFiles() {
